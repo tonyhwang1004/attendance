@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>출결 관리 - 김엄마독서실</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f0f4f8;--surface:#ffffff;--border:#d1dce8;--accent:#1a73e8;--accent2:#e8711a;--present:#1e9e57;--late:#e8900a;--absent:#d93025;--text:#1a2332;--muted:#6b7f99;--card:#f8fafc}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(26,115,232,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(26,115,232,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+  .app{position:relative;z-index:1}
+  header{background:linear-gradient(135deg,#1a73e8,#0d5bcc);border-bottom:1px solid #1560c8;padding:18px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;box-shadow:0 4px 16px rgba(26,115,232,.25)}
+  .logo{width:42px;height:42px;background:rgba(255,255,255,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 16px rgba(255,255,255,.2)}
+  h1{font-size:20px;font-weight:700;color:#fff}
+  h1 span{color:#a8d4ff;font-family:'Space Mono',monospace}
+  .clock{font-family:'Space Mono',monospace;font-size:12px;color:rgba(255,255,255,.8);background:rgba(255,255,255,.15);padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.2)}
+  .spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .center{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:55vh;gap:16px}
+  .btn{padding:8px 16px;border-radius:9px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Noto Sans KR',sans-serif;white-space:nowrap}
+  .btn:active{transform:scale(.97)}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#0d5bcc);color:#fff;box-shadow:0 3px 12px rgba(26,115,232,.3)}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(26,115,232,.4)}
+  .btn-green{background:#e8f5ee;color:var(--present);border:1px solid #b8dfc9}
+  .btn-green:hover{background:#d4eddf}
+  .btn-orange{background:#fff3e8;color:var(--accent2);border:1px solid #f5cfa0}
+  .btn-orange:hover{background:#ffe8d0}
+  .btn-blue{background:#e8f0fe;color:var(--accent);border:1px solid #b8d0f8}
+  .btn-blue:hover{background:#d4e4fc}
+  .btn-dim{background:#f0f4f8;color:var(--muted);border:1px solid var(--border)}
+  .btn-dim:hover{color:var(--text);border-color:var(--accent)}
+  .btn-sheet{background:#e6f4ea;color:#1e8e3e;border:1px solid #b8dfc9}
+  .btn-sheet:hover{background:#ceead6}
+  .btn-sheet:disabled{background:#f0f4f8;color:#b0bec5;border-color:#dde3ea;cursor:not-allowed}
+  .toolbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .tleft{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .dselector{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:7px 14px}
+  .dselector input[type=date]{background:transparent;border:none;color:var(--text);font-size:14px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;outline:none;padding:0}
+  .dselector input[type=date]::-webkit-calendar-picker-indicator{filter:none;cursor:pointer}
+  .stats{padding:18px 32px;display:flex;gap:14px;flex-wrap:wrap}
+  .sc{flex:1;min-width:120px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden;transition:transform .2s;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .sc:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.1)}
+  .sc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+  .sc.t::after{background:linear-gradient(90deg,var(--accent),#0d5bcc)}
+  .sc.p::after{background:var(--present)}
+  .sc.l::after{background:var(--late)}
+  .sc.a::after{background:var(--absent)}
+  .sc.n::after{background:#b0bec5}
+  .sl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:500}
+  .sv{font-family:'Space Mono',monospace;font-size:30px;font-weight:700;line-height:1}
+  .sc.t .sv{color:var(--accent)}.sc.p .sv{color:var(--present)}.sc.l .sv{color:var(--late)}.sc.a .sv{color:var(--absent)}.sc.n .sv{color:#90a4ae}
+  .sp{font-size:11px;color:var(--muted);margin-top:4px;font-family:'Space Mono',monospace}
+  .content{padding:0 32px 32px}
+  .ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+  .ct{font-size:15px;font-weight:600;color:var(--muted)}
+  .ct b{color:var(--text)}
+  .sb{position:relative;width:210px}
+  .sb input{width:100%;background:#fff;border:1px solid var(--border);border-radius:9px;padding:8px 12px 8px 34px;color:var(--text);font-size:13px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  .sb input:focus{border-color:var(--accent)}
+  .sb input::placeholder{color:#b0bec5}
+  .sb::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:12px}
+  .card{background:#fff;border:1px solid var(--border);border-radius:13px;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:all .2s;position:relative;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;transition:background .2s}
+  .card[data-s=present]::before{background:var(--present)}
+  .card[data-s=late]::before{background:var(--late)}
+  .card[data-s=absent]::before{background:var(--absent)}
+  .card[data-s=none]::before{background:#dde3ea}
+  .card:hover{border-color:#a8c4f0;box-shadow:0 6px 18px rgba(26,115,232,.12);transform:translateY(-1px)}
+  .snum{font-family:'Space Mono',monospace;font-size:10px;color:#90a4ae;margin-bottom:2px}
+  .sname{font-size:15px;font-weight:700;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+  .abtns{display:flex;gap:6px;flex-shrink:0}
+  .ab{width:36px;height:36px;border-radius:8px;border:1px solid #dde3ea;background:#f8fafc;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+  .ab:hover{transform:scale(1.12);box-shadow:0 2px 8px rgba(0,0,0,.1)}
+  .ab.pb{border-color:#b8dfc9}.ab.lb{border-color:#f5d5a0}.ab.xb{border-color:#f5b8b8}
+  .ab.on.pb{background:#e8f5ee;border-color:var(--present);box-shadow:0 0 8px rgba(30,158,87,.25)}
+  .ab.on.lb{background:#fff3e0;border-color:var(--late);box-shadow:0 0 8px rgba(232,144,10,.25)}
+  .ab.on.xb{background:#fde8e8;border-color:var(--absent);box-shadow:0 0 8px rgba(217,48,37,.25)}
+  .bbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:12px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;z-index:100;box-shadow:0 -4px 16px rgba(0,0,0,.08)}
+  .pw{flex:1;min-width:180px;max-width:380px}
+  .pl{font-size:11px;color:var(--muted);margin-bottom:5px;display:flex;justify-content:space-between}
+  .pt{height:6px;background:#e8edf2;border-radius:3px;overflow:hidden;display:flex}
+  .pf{height:100%;border-radius:3px;transition:width .3s ease}
+  .pp{background:var(--present)}.lp{background:var(--late)}.ap{background:var(--absent)}
+  .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center;padding:20px}
+  .mo.open{display:flex}
+  .md{background:#fff;border:1px solid var(--border);border-radius:20px;padding:28px;width:100%;max-width:660px;max-height:82vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+  .mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .mt{font-size:17px;font-weight:700;color:var(--text)}
+  .mc{width:30px;height:30px;border-radius:8px;background:#f0f4f8;border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s}
+  .mc:hover{background:#fde8e8;color:var(--absent);border-color:var(--absent)}
+  .badge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;font-family:'Space Mono',monospace}
+  .bp{background:#e8f5ee;color:var(--present)}.bl{background:#fff3e0;color:var(--late)}.ba{background:#fde8e8;color:var(--absent)}
+  .toast{position:fixed;bottom:82px;right:20px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 18px;font-size:13px;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:400;transform:translateY(16px);opacity:0;transition:all .3s;max-width:320px}
+  .toast.show{transform:translateY(0);opacity:1}
+  .empty{text-align:center;padding:50px 20px;color:var(--muted);grid-column:1/-1}
+  @media(max-width:600px){header,.toolbar,.stats,.content,.bbar{padding-left:14px;padding-right:14px}.grid{grid-template-columns:1fr}.sc{min-width:100px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="toast" id="toast"></div>
+
+  <header>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="logo">📋</div>
+      <div>
+        <h1><span>ATTEND</span>ANCE</h1>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">김엄마독서실 7층 출결관리</div>
+      </div>
+    </div>
+    <div class="clock" id="clock"></div>
+  </header>
+
+  <!-- 로딩 -->
+  <div class="center" id="scLoad">
+    <div class="spinner"></div>
+    <div style="color:var(--muted);font-size:14px" id="loadMsg">구글 시트 연결 중...</div>
+  </div>
+
+  <!-- 메인 -->
+  <div id="scMain" style="display:none">
+    <div class="toolbar">
+      <div class="tleft">
+        <div class="dselector">
+          <span>📅</span>
+          <input type="date" id="dInput" onchange="changeDate()">
+        </div>
+        <button class="btn btn-green" onclick="setAll('present')">✅ 전체 출석</button>
+        <button class="btn btn-dim" onclick="reload()">🔄 명단 새로고침</button>
+      </div>
+      <button class="btn btn-orange" onclick="openHist()">📜 출결 기록</button>
+    </div>
+
+    <div class="stats">
+      <div class="sc t"><div class="sl">전체</div><div class="sv" id="sT">0</div></div>
+      <div class="sc p"><div class="sl">✅ 출석</div><div class="sv" id="sP">0</div><div class="sp" id="sPp"></div></div>
+      <div class="sc l"><div class="sl">⚠️ 무단지각</div><div class="sv" id="sL">0</div><div class="sp" id="sLp"></div></div>
+      <div class="sc a"><div class="sl">❌ 무단결석</div><div class="sv" id="sA">0</div><div class="sp" id="sAp"></div></div>
+      <div class="sc n"><div class="sl">⬜ 미확인</div><div class="sv" id="sN">0</div></div>
+    </div>
+
+    <div class="content">
+      <div class="ch">
+        <div class="ct">학생 목록 &nbsp;<b id="cnt">0명</b></div>
+        <div class="sb"><input type="text" id="srch" placeholder="이름 검색..." oninput="render()"></div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="bbar">
+      <div class="pw">
+        <div class="pl"><span>출결 현황</span><span id="pLabel">0 / 0</span></div>
+        <div class="pt">
+          <div class="pf pp" id="pgP" style="width:0%"></div>
+          <div class="pf lp" id="pgL" style="width:0%"></div>
+          <div class="pf ap" id="pgA" style="width:0%"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-sheet" onclick="saveToSheet()" id="sheetBtn">☁️ 시트 저장</button>
+        <button class="btn btn-blue" onclick="exportCSV()">💾 CSV 저장</button>
+        <button class="btn btn-orange" onclick="exportSummary()">📋 요약 복사</button>
+      </div>
+    </div>
+
+    <!-- 기록 모달 -->
+    <div class="mo" id="histMo">
+      <div class="md">
+        <div class="mh">
+          <div class="mt">📜 날짜별 출결 기록</div>
+          <button class="mc" onclick="closeMo()">✕</button>
+        </div>
+        <div id="histC"></div>
+      </div>
+    </div>
+    <div style="height:76px"></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwzmvubZEXd1OiJJQ9lquVpljmGD7X0OWN9nX-5IiR1hmsetFBNfCywGcBZzM_hWw389Q/exec';
+const SK = 'att_7f';
+// ════════════════════════════════════════
+
+let students=[], att={}, curDate=today();
+
+function today(){ return new Date().toISOString().slice(0,10); }
+
+// 시계
+(function tick(){
+  const n=new Date();
+  const el=document.getElementById('clock');
+  if(el) el.textContent=n.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'})+' '+n.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  setTimeout(tick,1000);
+})();
+
+// ── 불러오기 ──────────────────────────────────────────
+async function reload(){ await loadStudents(); }
+
+async function loadStudents(){
+  show('scLoad'); hide('scMain');
+  setMsg('구글 시트 연결 중...');
+
+  try{
+    const res = await fetch(GAS_URL);
+    const json = await res.json();
+
+    if(json.status === 'ok' && json.students && json.students.length > 0){
+      students = json.students.map((name, i) => ({
+        id: 's'+i,
+        num: String(i+1),
+        name: name.toString().trim()
+      })).filter(s => s.name);
+
+      localStorage.setItem(SK+'_students', JSON.stringify(students));
+      startApp();
+      showToast(`✅ ${students.length}명 불러왔습니다!`);
+      return;
+    }
+    throw new Error('데이터 없음');
+
+  }catch(e){
+    console.warn('GAS 실패:', e);
+    setMsg('오프라인 모드로 전환 중...');
+
+    // 오프라인 백업
+    const bk = localStorage.getItem(SK+'_students');
+    if(bk){
+      students = JSON.parse(bk);
+      startApp();
+      showToast('⚠️ 오프라인 모드 (저장된 명단)');
+    } else {
+      setMsg('❌ 연결 실패 - 인터넷 확인 후 새로고침 해주세요');
+    }
+  }
+}
+
+function setMsg(t){ const e=document.getElementById('loadMsg'); if(e) e.textContent=t; }
+
+function startApp(){
+  const saved = localStorage.getItem(SK);
+  if(saved) att = JSON.parse(saved);
+  curDate = today();
+  if(!att[curDate]) att[curDate]={};
+  document.getElementById('dInput').value = curDate;
+  hide('scLoad'); show('scMain');
+  render(); stats();
+}
+
+// ── 렌더 ──────────────────────────────────────────────
+function render(){
+  const q=(document.getElementById('srch').value||'').toLowerCase();
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+  const f=students.filter(s=>s.name.toLowerCase().includes(q));
+  document.getElementById('cnt').textContent=`${f.length}명`;
+
+  if(!f.length){
+    grid.innerHTML='<div class="empty"><div style="font-size:40px;margin-bottom:12px">🔍</div><div>검색 결과 없음</div></div>';
+    return;
+  }
+
+  f.forEach(s=>{
+    const st=(att[curDate]||{})[s.id]||'none';
+    const d=document.createElement('div');
+    d.className='card'; d.dataset.s=st; d.id='c'+s.id;
+    d.innerHTML=`
+      <div style="flex:1;min-width:0">
+        <div class="snum">No.${s.num}</div>
+        <div class="sname">${s.name}</div>
+      </div>
+      <div class="abtns">
+        <button class="ab pb ${st==='present'?'on':''}" onclick="setSt('${s.id}','present')" title="출석">✅</button>
+        <button class="ab lb ${st==='late'?'on':''}" onclick="setSt('${s.id}','late')" title="무단지각">⚠️</button>
+        <button class="ab xb ${st==='absent'?'on':''}" onclick="setSt('${s.id}','absent')" title="무단결석">❌</button>
+      </div>`;
+    grid.appendChild(d);
+  });
+}
+
+function setSt(id, status){
+  if(!att[curDate]) att[curDate]={};
+  att[curDate][id]===status ? delete att[curDate][id] : (att[curDate][id]=status);
+  save();
+  const card=document.getElementById('c'+id);
+  if(card){
+    const ns=(att[curDate]||{})[id]||'none';
+    card.dataset.s=ns;
+    card.querySelectorAll('.ab').forEach(b=>b.classList.remove('on'));
+    if(ns!=='none'){
+      const cls={present:'pb',late:'lb',absent:'xb'}[ns];
+      card.querySelector('.'+cls)?.classList.add('on');
+    }
+  }
+  stats();
+}
+
+function setAll(s){
+  if(!att[curDate]) att[curDate]={};
+  students.forEach(st=>{att[curDate][st.id]=s;});
+  save(); render(); stats();
+  showToast('✅ 전체 출석으로 설정했습니다!');
+}
+
+// ── 통계 ──────────────────────────────────────────────
+function stats(){
+  const day=att[curDate]||{};
+  const n=students.length;
+  const p=students.filter(s=>day[s.id]==='present').length;
+  const l=students.filter(s=>day[s.id]==='late').length;
+  const a=students.filter(s=>day[s.id]==='absent').length;
+  const c=p+l+a;
+  document.getElementById('sT').textContent=n;
+  document.getElementById('sP').textContent=p;
+  document.getElementById('sL').textContent=l;
+  document.getElementById('sA').textContent=a;
+  document.getElementById('sN').textContent=n-c;
+  const pct=x=>n>0?Math.round(x/n*100)+'%':'0%';
+  document.getElementById('sPp').textContent=pct(p);
+  document.getElementById('sLp').textContent=pct(l);
+  document.getElementById('sAp').textContent=pct(a);
+  document.getElementById('pLabel').textContent=`${c} / ${n} 확인됨`;
+  document.getElementById('pgP').style.width=pct(p);
+  document.getElementById('pgL').style.width=pct(l);
+  document.getElementById('pgA').style.width=pct(a);
+}
+
+function changeDate(){
+  curDate=document.getElementById('dInput').value;
+  if(!att[curDate]) att[curDate]={};
+  render(); stats();
+}
+
+// ── 기록 ──────────────────────────────────────────────
+function openHist(){
+  const c=document.getElementById('histC');
+  const dates=Object.keys(att).sort().reverse();
+  if(!dates.length){
+    c.innerHTML='<div class="empty" style="grid-column:unset"><div style="font-size:36px;margin-bottom:12px">📭</div><div>기록 없음</div></div>';
+  }else{
+    c.innerHTML=dates.map(d=>{
+      const day=att[d];
+      const p=students.filter(s=>day[s.id]==='present');
+      const l=students.filter(s=>day[s.id]==='late');
+      const a=students.filter(s=>day[s.id]==='absent');
+      return`<div style="margin-bottom:22px">
+        <div style="font-weight:700;margin-bottom:10px;color:var(--accent);font-family:'Space Mono',monospace">${d}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          <span class="badge bp">출석 ${p.length}</span>
+          <span class="badge bl">지각 ${l.length}</span>
+          <span class="badge ba">결석 ${a.length}</span>
+        </div>
+        ${l.length?`<div style="font-size:13px;color:var(--late);margin-bottom:4px">⚠️ 무단지각: ${l.map(s=>s.name).join(', ')}</div>`:''}
+        ${a.length?`<div style="font-size:13px;color:var(--absent)">❌ 무단결석: ${a.map(s=>s.name).join(', ')}</div>`:''}
+        <div style="height:1px;background:var(--border);margin-top:14px"></div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('histMo').classList.add('open');
+}
+function closeMo(){ document.getElementById('histMo').classList.remove('open'); }
+document.addEventListener('click',e=>{ if(e.target.id==='histMo') closeMo(); });
+
+// ── 내보내기 ──────────────────────────────────────────
+function exportCSV(){
+  const dates=Object.keys(att).sort();
+  const rows=[['번호','이름',...dates]];
+  students.forEach(s=>rows.push([s.num,s.name,...dates.map(d=>({present:'출석',late:'무단지각',absent:'무단결석'})[(att[d]||{})[s.id]]||'')]));
+  const blob=new Blob(['\uFEFF'+rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`출결기록_${today()}.csv`;
+  a.click();
+  showToast('💾 CSV 저장 완료!');
+}
+
+function exportSummary(){
+  const day=att[curDate]||{};
+  const l=students.filter(s=>day[s.id]==='late');
+  const a=students.filter(s=>day[s.id]==='absent');
+  const p=students.filter(s=>day[s.id]==='present');
+  const text=`[출결 요약] ${curDate}\n전체: ${students.length}명\n✅ 출석: ${p.length}명\n⚠️ 무단지각: ${l.length}명${l.length?' ('+l.map(s=>s.name).join(', ')+')':''}\n❌ 무단결석: ${a.length}명${a.length?' ('+a.map(s=>s.name).join(', ')+')':''}`;
+  navigator.clipboard.writeText(text)
+    .then(()=>showToast('📋 요약 복사 완료!'))
+    .catch(()=>showToast('⚠️ 복사 실패'));
+}
+
+// ── 구글 시트 저장 ────────────────────────────────────
+async function saveToSheet(){
+  const day = att[curDate]||{};
+  const records = students.map(s=>({
+    name: s.name,
+    status: day[s.id]||'none'
+  }));
+
+  const btn = document.getElementById('sheetBtn');
+  btn.disabled = true;
+  btn.textContent = '☁️ 저장 중...';
+
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ date: curDate, records })
+    });
+    const json = await res.json();
+    if(json.status === 'ok'){
+      showToast('☁️ 구글 시트에 저장됐습니다!');
+    } else {
+      throw new Error('저장 실패');
+    }
+  } catch(e) {
+    showToast('❌ 시트 저장 실패 - Apps Script를 확인해주세요');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '☁️ 시트 저장';
+  }
+}
+
+// ── 유틸 ──────────────────────────────────────────────
+function save(){ localStorage.setItem(SK, JSON.stringify(att)); }
+function show(id){ document.getElementById(id).style.display=''; }
+function hide(id){ document.getElementById(id).style.display='none'; }
+let tt;
+function showToast(m){
+  const t=document.getElementById('toast');
+  t.textContent=m; t.classList.add('show');
+  clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// 시작!
+loadStudents();
+</script>
+</body>
+</html>

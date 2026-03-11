@@ -284,13 +284,14 @@ function render(){
   }
 
   f.forEach(s=>{
-    const st=(att[curDate]||{})[s.id]||'none';
+    const st=getSt(s.id); const tm=getTime(s.id);
     const d=document.createElement('div');
     d.className='card'; d.dataset.s=st; d.id='c'+s.id;
     d.innerHTML=`
       <div style="flex:1;min-width:0">
         <div class="snum">No.${s.num}</div>
         <div class="sname">${s.name}</div>
+        ${tm ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;font-family:'Space Mono',monospace">⏰ ${tm}</div>` : ''}
       </div>
       <div class="abtns">
         <button class="ab pb ${st==='present'?'on':''}" onclick="setSt('${s.id}','present')" title="출석">✅</button>
@@ -301,9 +302,13 @@ function render(){
   });
 }
 
+function getSt(id){ const v=((att[curDate]||{})[id]); return v ? (typeof v==='object' ? v.status : v) : 'none'; }
+function getTime(id){ const v=((att[curDate]||{})[id]); return v && typeof v==='object' ? v.time : ''; }
+
 function setSt(id, status){
   if(!att[curDate]) att[curDate]={};
-  att[curDate][id]===status ? delete att[curDate][id] : (att[curDate][id]=status);
+  const cur = getSt(id);
+  cur===status ? delete att[curDate][id] : (att[curDate][id]={status, time:''});
   save();
   const card=document.getElementById('c'+id);
   if(card){
@@ -329,9 +334,9 @@ function setAll(s){
 function stats(){
   const day=att[curDate]||{};
   const n=students.length;
-  const p=students.filter(s=>day[s.id]==='present').length;
-  const l=students.filter(s=>day[s.id]==='late').length;
-  const a=students.filter(s=>day[s.id]==='absent').length;
+  const p=students.filter(s=>getSt(s.id)==='present').length;
+  const l=students.filter(s=>getSt(s.id)==='late').length;
+  const a=students.filter(s=>getSt(s.id)==='absent').length;
   const c=p+l+a;
   document.getElementById('sT').textContent=n;
   document.getElementById('sP').textContent=p;
@@ -363,9 +368,10 @@ function openHist(){
   }else{
     c.innerHTML=dates.map(d=>{
       const day=att[d];
-      const p=students.filter(s=>day[s.id]==='present');
-      const l=students.filter(s=>day[s.id]==='late');
-      const a=students.filter(s=>day[s.id]==='absent');
+      const getS=id=>{const v=day[id]; return v?(typeof v==='object'?v.status:v):'none';};
+      const p=students.filter(s=>getS(s.id)==='present');
+      const l=students.filter(s=>getS(s.id)==='late');
+      const a=students.filter(s=>getS(s.id)==='absent');
       return`<div style="margin-bottom:22px">
         <div style="font-weight:700;margin-bottom:10px;color:var(--accent);font-family:'Space Mono',monospace">${d}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
@@ -388,7 +394,7 @@ document.addEventListener('click',e=>{ if(e.target.id==='histMo') closeMo(); });
 function exportCSV(){
   const dates=Object.keys(att).sort();
   const rows=[['번호','이름',...dates]];
-  students.forEach(s=>rows.push([s.num,s.name,...dates.map(d=>({present:'출석',late:'무단지각',absent:'무단결석'})[(att[d]||{})[s.id]]||'')]));
+  students.forEach(s=>rows.push([s.num,s.name,...dates.map(d=>{const v=(att[d]||{})[s.id]; const st=v?(typeof v==='object'?v.status:v):''; return ({present:'출석',late:'무단지각',absent:'무단결석'})[st]||''; })]));
   const blob=new Blob(['\uFEFF'+rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
@@ -399,9 +405,9 @@ function exportCSV(){
 
 function exportSummary(){
   const day=att[curDate]||{};
-  const l=students.filter(s=>day[s.id]==='late');
-  const a=students.filter(s=>day[s.id]==='absent');
-  const p=students.filter(s=>day[s.id]==='present');
+  const l=students.filter(s=>getSt(s.id)==='late');
+  const a=students.filter(s=>getSt(s.id)==='absent');
+  const p=students.filter(s=>getSt(s.id)==='present');
   const text=`[출결 요약] ${curDate}\n전체: ${students.length}명\n✅ 출석: ${p.length}명\n⚠️ 무단지각: ${l.length}명${l.length?' ('+l.map(s=>s.name).join(', ')+')':''}\n❌ 무단결석: ${a.length}명${a.length?' ('+a.map(s=>s.name).join(', ')+')':''}`;
   navigator.clipboard.writeText(text)
     .then(()=>showToast('📋 요약 복사 완료!'))
@@ -437,42 +443,67 @@ function handleXlsx(input){
     const after8  = [];
     const nameSet = new Set();
 
+    // 오전 시간만 담을 배열 (먼저 오전 ENTER만 추출해서 정렬)
+    const enterRecords = [];
+
     for(let i=1; i<rows.length; i++){
       const row = rows[i];
       if(!row || !row[nameIdx]) continue;
       const name = String(row[nameIdx]).trim();
-      const dir  = dirIdx >= 0 ? String(row[dirIdx]||'') : '';
-      // 퇴실 제외
-      if(dir.includes('출') || dir.includes('퇴')) continue;
+      if(!name) continue;
+      const dir = dirIdx >= 0 ? String(row[dirIdx]||'').toUpperCase() : '';
+
+      // ENTER만 처리 (EXIT 제외)
+      if(dir && dir !== 'ENTER') continue;
 
       let timeVal = row[timeIdx];
       let hour = 25, min = 0;
+      let isPM = false;
 
       if(timeVal instanceof Date){
         hour = timeVal.getHours();
         min  = timeVal.getMinutes();
       } else if(typeof timeVal === 'string'){
-        const m = timeVal.match(/(\d{1,2}):(\d{2})/);
-        if(m){ hour = parseInt(m[1]); min = parseInt(m[2]); }
+        isPM = timeVal.includes('오후') || timeVal.toLowerCase().includes('pm');
+        const cleaned = timeVal.replace(/오전|오후|AM|PM/gi,'').trim();
+        const m = cleaned.match(/(\d{1,2}):(\d{2})/);
+        if(m){
+          hour = parseInt(m[1]);
+          min  = parseInt(m[2]);
+          // 오후이고 12시가 아닌 경우 +12
+          if(isPM && hour !== 12) hour += 12;
+          // 오전 12시는 0시
+          if(!isPM && hour === 12) hour = 0;
+        }
       } else if(typeof timeVal === 'number'){
-        // Excel 시간 소수값 (0~1)
-        const totalMin = Math.round(timeVal * 24 * 60);
-        hour = Math.floor(totalMin / 60) % 24;
-        min  = totalMin % 60;
+        const totalSec = Math.round(timeVal * 86400);
+        hour = Math.floor(totalSec / 3600) % 24;
+        min  = Math.floor((totalSec % 3600) / 60);
       }
 
       const timeStr = String(hour).padStart(2,'0') + ':' + String(min).padStart(2,'0');
-
-      // 같은 이름 첫 입실만
-      if(!nameSet.has(name)){
-        nameSet.add(name);
-        if(hour < 8){
-          before8.push({name, time: timeStr});
-        } else {
-          after8.push({name, time: timeStr});
-        }
-      }
+      enterRecords.push({name, hour, min, timeStr});
     }
+
+    // 각 학생의 가장 이른 입실 시간만 사용
+    const firstEnter = {};
+    enterRecords.forEach(r => {
+      if(!firstEnter[r.name] || r.hour*60+r.min < firstEnter[r.name].hour*60+firstEnter[r.name].min){
+        firstEnter[r.name] = r;
+      }
+    });
+
+    // 출석/지각 분류
+    // 오전 8:00 이하 → 출석 / 오전 8:01 이후 (오후 포함) → 무단지각
+    Object.values(firstEnter).forEach(r => {
+      const totalMin = r.hour * 60 + r.min;
+      const isOnTime = totalMin <= 8 * 60; // 8:00 이하 = 출석
+      if(isOnTime){
+        before8.push({name: r.name, time: r.timeStr});
+      } else {
+        after8.push({name: r.name, time: r.timeStr});
+      }
+    });
 
     xlsxParsed = { before8, after8 };
 
@@ -484,7 +515,7 @@ function handleXlsx(input){
     let html = '';
     if(matched_b.length){
       html += `<div style="margin-bottom:16px">
-        <div style="font-weight:700;color:var(--present);margin-bottom:8px">✅ 8시 이전 입실 (출석 자동 처리) — ${matched_b.length}명</div>
+        <div style="font-weight:700;color:var(--present);margin-bottom:8px">✅ 오전 8시 이전 입실 (출석 자동 처리) — ${matched_b.length}명</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
           ${matched_b.map(r=>`<span style="background:#e8f5ee;color:var(--present);border:1px solid #b8dfc9;border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span></span>`).join('')}
         </div>
@@ -492,7 +523,7 @@ function handleXlsx(input){
     }
     if(matched_a.length){
       html += `<div style="margin-bottom:16px">
-        <div style="font-weight:700;color:var(--late);margin-bottom:8px">⚠️ 8시 이후 입실 (무단지각 자동 처리) — ${matched_a.length}명</div>
+        <div style="font-weight:700;color:var(--late);margin-bottom:8px">⚠️ 오전 8시 01분 이후 입실 (무단지각 자동 처리) — ${matched_a.length}명</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
           ${matched_a.map(r=>`<span style="background:#fff3e0;color:var(--late);border:1px solid #f5d5a0;border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span></span>`).join('')}
         </div>
@@ -525,13 +556,13 @@ function applyXlsx(){
   let cntP = 0, cntL = 0;
   xlsxParsed.before8.forEach(r=>{
     const s = students.find(st=>st.name===r.name);
-    if(s){ att[curDate][s.id] = 'present'; cntP++; }
+    if(s){ att[curDate][s.id] = {status:'present', time:r.time}; cntP++; }
   });
 
   // 8시 이후 → 무단지각 자동
   xlsxParsed.after8.forEach(r=>{
     const s = students.find(st=>st.name===r.name);
-    if(s){ att[curDate][s.id] = 'late'; cntL++; }
+    if(s){ att[curDate][s.id] = {status:'late', time:r.time}; cntL++; }
   });
 
   // 입실 기록 없는 학생 → 미확인 (수동 처리)
@@ -549,7 +580,8 @@ async function saveToSheet(){
   const day = att[curDate]||{};
   const records = students.map(s=>({
     name: s.name,
-    status: day[s.id]||'none'
+    status: getSt(s.id),
+    time: getTime(s.id)
   }));
 
   const btn = document.getElementById('sheetBtn');

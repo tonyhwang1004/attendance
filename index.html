@@ -551,7 +551,8 @@ function handleXlsx(input){
 
 function applyXlsx(){
   if(!xlsxParsed.before8) return;
-  if(!att[curDate]) att[curDate]={};
+  // 현재 날짜 데이터 초기화 후 새로 적용
+  att[curDate] = {};
 
   // 이름 매칭 함수: 숫자/공백 제거 후 비교
   const normName = n => n.replace(/[0-9]/g,'').trim();
@@ -583,7 +584,7 @@ function applyXlsx(){
   // 입실 기록 없는 학생 → 미확인 (수동 처리)
   save(); render(); stats();
   closeXlsxMo();
-  showToast(`✅ 출석 ${cntP}명 / ⚠️ 지각 ${cntL}명 자동 처리! (나머지는 수동으로 처리해주세요)`);
+  showToast(`✅ 출석 ${cntP}명 / ⚠️ 무단지각 ${cntL}명 자동 처리 완료!`);
 }
 
 function closeXlsxMo(){

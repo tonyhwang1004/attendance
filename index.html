@@ -572,6 +572,14 @@ function applyXlsx(){
     if(s){ att[curDate][s.id] = {status:'late', time:r.time}; cntL++; }
   });
 
+  // 엑셀에 기록 없는 학생 → 무단지각 자동 처리 (미확인 없음)
+  students.forEach(s=>{
+    if(!att[curDate][s.id]){
+      att[curDate][s.id] = {status:'late', time:''};
+      cntL++;
+    }
+  });
+
   // 입실 기록 없는 학생 → 미확인 (수동 처리)
   save(); render(); stats();
   closeXlsxMo();

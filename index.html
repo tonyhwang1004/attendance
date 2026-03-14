@@ -594,10 +594,20 @@ function closeXlsxMo(){
 // ── 구글 시트 저장 ────────────────────────────────────
 async function saveToSheet(){
   const day = att[curDate]||{};
+
+  // 출결왕: 오늘 출석한 학생 중 입실시간 빠른 순 3명
+  const presentWithTime = students
+    .filter(s => getSt(s.id)==='present' && getTime(s.id))
+    .map(s => ({ id: s.id, time: getTime(s.id) }))
+    .sort((a,b) => a.time.localeCompare(b.time))
+    .slice(0, 3)
+    .map(s => s.id);
+
   const records = students.map(s=>({
     name: s.name,
     status: getSt(s.id),
-    time: getTime(s.id)
+    time: getTime(s.id),
+    isKing: presentWithTime.includes(s.id)
   }));
 
   const btn = document.getElementById('sheetBtn');

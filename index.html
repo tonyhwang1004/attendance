@@ -356,6 +356,11 @@ function stats(){
 function changeDate(){
   curDate=document.getElementById('dInput').value;
   if(!att[curDate]) att[curDate]={};
+  // 일요일이면 경고 배너 표시
+  const dow = new Date(curDate).getDay();
+  if(dow === 0){
+    showToast('⚠️ 일요일은 자율등원일입니다. 출결이 기록되지 않습니다.');
+  }
   render(); stats();
 }
 
@@ -551,6 +556,14 @@ function handleXlsx(input){
 
 function applyXlsx(){
   if(!xlsxParsed.before8) return;
+
+  // 일요일 skip
+  const d = new Date(curDate);
+  if(d.getDay() === 0){
+    showToast('일요일은 자율등원일입니다. 출결을 기록하지 않습니다.');
+    return;
+  }
+
   // 현재 날짜 데이터 초기화 후 새로 적용
   att[curDate] = {};
 
@@ -593,6 +606,13 @@ function closeXlsxMo(){
 
 // ── 구글 시트 저장 ────────────────────────────────────
 async function saveToSheet(){
+  // 일요일 skip
+  const _d = new Date(curDate);
+  if(_d.getDay() === 0){
+    showToast('일요일은 자율등원일입니다. 저장하지 않습니다.');
+    return;
+  }
+
   const day = att[curDate]||{};
 
   // 출결왕: 오늘 출석한 학생 중 입실시간 빠른 순 3명

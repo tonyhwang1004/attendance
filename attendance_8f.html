@@ -164,9 +164,25 @@
         <button class="btn btn-green" onclick="setAll('present')">✅ 전체 출석</button>
         <label class="btn btn-excel" style="cursor:pointer">📂 바이오스타 CSV 업로드<input type="file" id="xlsxInput" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleXlsx(this)"></label>
         <label class="btn btn-sched" style="cursor:pointer" title="정기일정 파일 업로드 (CSV/엑셀)">📅 정기일정 업로드<input type="file" id="schedInput" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleScheduleXlsx(this)"></label>
+        <label class="btn" style="cursor:pointer;background:#fce8f3;color:#9c27b0;border:1px solid #e8b4d8">📋 사유제출 업로드<input type="file" id="reasonInput" accept=".csv" style="display:none" onchange="handleReasonCsv(this)"></label>
         <button class="btn btn-dim" onclick="reload()">🔄 명단 새로고침</button>
       </div>
       <button class="btn btn-orange" onclick="openHist()">📜 출결 기록</button>
+    </div>
+
+    <!-- 사유제출 결과 모달 -->
+    <div class="mo" id="reasonMo">
+      <div class="md" style="max-width:720px">
+        <div class="mh">
+          <div class="mt">📋 사유제출 분석 결과</div>
+          <button class="mc" onclick="closeReasonMo()">✕</button>
+        </div>
+        <div id="reasonResult"></div>
+        <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end">
+          <button class="btn btn-dim" onclick="closeReasonMo()">닫기</button>
+          <button class="btn btn-primary" onclick="applyReason()">✅ 적용하기</button>
+        </div>
+      </div>
     </div>
 
     <div class="mo" id="xlsxMo">
@@ -810,37 +826,10 @@ function processEnterRecords(enterRecords){
     const dayText = si ? si.dayText : '';
     const actualMin = r.hour*60 + r.min;
 
-    if(!hasSchedule){
-      // 정기일정 없으면 출석 처리
-      present.push({name:r.name, time:r.timeStr, note:'출석'});
-      return;
-    }
-
-    // ① 결석 예정인데 왔으면 → 출석
-    if(dayText.includes('결석')){
-      present.push({name:r.name, time:r.timeStr, note:'결석예정→출석'});
-      return;
-    }
-
-    // ② 정기일정에 "지각" 명시 → 승인된 지각 = 출석 처리
-    if(dayText.includes('지각')){
-      present.push({name:r.name, time:r.timeStr, note:'승인지각'});
-      return;
-    }
-
-    // ③ 정기일정에 등원 시간 있음 → 시간 비교
-    const schedMin = getScheduledArrivalMin(dayText);
-    if(schedMin !== null){
-      if(actualMin <= schedMin + 30){
-        present.push({name:r.name, time:r.timeStr, note:'출석'});
-      } else {
-        const schedLabel = Math.floor(schedMin/60)+'시'+(schedMin%60?(schedMin%60)+'분':'');
-        late.push({name:r.name, time:r.timeStr, schedTime:schedLabel});
-      }
-    } else {
-      // 정기일정 있지만 시간 파싱 안 됨 → 출석
-      present.push({name:r.name, time:r.timeStr, note:'출석'});
-    }
+    // 입실 기록 있으면 무조건 출석
+    // 정기일정에 "지각" 명시 시 승인지각 표시
+    const note = dayText.includes('지각') ? '승인지각' : '출석';
+    present.push({name:r.name, time:r.timeStr, note});
   });
 
   // 입실 기록 없는 학생 처리
@@ -851,10 +840,10 @@ function processEnterRecords(enterRecords){
       const si = getScheduleForDate(s.name, curDate);
       const dayText = si ? si.dayText : '';
       if(dayText.includes('결석')){
-        // 결석 예정 → 결석(승인)
+        // 결석 예정 + 입실 없음 → 결석(승인)
         absentSched.push({name:s.name, note:'결석(승인)'});
       }
-      // 그 외 입실 기록 없는 학생은 미확인으로 둠 (강제 결석 처리 안 함)
+      // 그 외는 미확인 — 수동 처리
     }
   });
 
@@ -928,6 +917,129 @@ function applyXlsx(){
   showToast(`✅ 출석 ${cntP}명 / ⚠️ 무단지각 ${cntL}명 / ❌ 결석 ${cntA}명 처리 완료!`);
 }
 function closeXlsxMo(){ document.getElementById('xlsxMo').classList.remove('open'); }
+
+// ── 사유제출 CSV 파싱 ─────────────────────────────────
+let reasonData = {}; // { 이름: { type, arrivalTime, departTime, reason, approved } }
+
+function handleReasonCsv(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const lines = e.target.result.split('\n');
+      const parsed = {};
+      for(let i=1; i<lines.length; i++){
+        const cols = parseCSVLine(lines[i].trim());
+        if(cols.length < 8) continue;
+        const name     = (cols[0]||'').trim();
+        const location = (cols[1]||'').trim(); // 송도_자유석, 송도_지정석, 송도_7층
+        const type     = (cols[3]||'').trim(); // 지각, 결석, 조기하원, 외출
+        const approved = (cols[4]||'').trim(); // 승인완료, 대기중
+        const depart   = (cols[5]||'').replace(/'/g,'').trim(); // 출발시간
+        const arrive   = (cols[6]||'').replace(/'/g,'').trim(); // 도착시간
+        const reason   = (cols[7]||'').trim(); // 사유
+
+        if(!name) continue;
+        // 8층만 처리 (송도_자유석, 송도_지정석)
+        if(!location.includes('자유석') && !location.includes('지정석')) continue;
+        if(approved !== '승인완료') continue;
+
+        // 중복 시 가장 최신 유지 (나중에 제출한 것)
+        if(!parsed[name]){
+          parsed[name] = { type, depart, arrive, reason, approved };
+        } else {
+          // 지각이 조기하원보다 우선
+          if(type === '지각' || type === '결석') {
+            parsed[name] = { type, depart, arrive, reason, approved };
+          }
+        }
+      }
+      reasonData = parsed;
+      const cnt = Object.keys(reasonData).length;
+
+      // 결과 HTML 생성
+      const lateList  = Object.entries(reasonData).filter(([,v])=>v.type==='지각');
+      const absList   = Object.entries(reasonData).filter(([,v])=>v.type==='결석');
+      const earlyList = Object.entries(reasonData).filter(([,v])=>v.type==='조기하원');
+      const outList   = Object.entries(reasonData).filter(([,v])=>v.type==='외출');
+
+      let html = `<div style="font-size:13px;color:var(--muted);margin-bottom:16px">총 ${cnt}명 사유제출 (8층 승인완료 기준)</div>`;
+
+      const badge = (label, color, bg, border) =>
+        `<span style="display:inline-block;background:${bg};color:${color};border:1px solid ${border};border-radius:20px;padding:4px 12px;font-size:13px;margin:3px">`;
+
+      if(lateList.length) html += `<div style="margin-bottom:14px">
+        <div style="font-weight:700;color:var(--late);margin-bottom:8px">⏰ 사유지각 — ${lateList.length}명</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${lateList.map(([name,v])=>
+          `<span style="background:#fff3e0;color:var(--late);border:1px solid #f5d5a0;border-radius:20px;padding:4px 12px;font-size:13px">
+            ${name} <span style="opacity:.7;font-size:11px">${v.arrive!=='-'?v.arrive+' 도착':''} ${v.reason}</span>
+          </span>`).join('')}
+        </div></div>`;
+
+      if(absList.length) html += `<div style="margin-bottom:14px">
+        <div style="font-weight:700;color:var(--absent);margin-bottom:8px">❌ 사유결석 — ${absList.length}명</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${absList.map(([name,v])=>
+          `<span style="background:#fde8e8;color:var(--absent);border:1px solid #f5b8b8;border-radius:20px;padding:4px 12px;font-size:13px">
+            ${name} <span style="opacity:.7;font-size:11px">${v.reason}</span>
+          </span>`).join('')}
+        </div></div>`;
+
+      if(earlyList.length) html += `<div style="margin-bottom:14px">
+        <div style="font-weight:700;color:#7c3aed;margin-bottom:8px">🚪 조기하원 — ${earlyList.length}명</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${earlyList.map(([name,v])=>
+          `<span style="background:#f3e8ff;color:#7c3aed;border:1px solid #d8b4fe;border-radius:20px;padding:4px 12px;font-size:13px">
+            ${name} <span style="opacity:.7;font-size:11px">${v.depart!=='-'?v.depart+' 출발':''} ${v.reason}</span>
+          </span>`).join('')}
+        </div></div>`;
+
+      if(outList.length) html += `<div style="margin-bottom:14px">
+        <div style="font-weight:700;color:#1a73e8;margin-bottom:8px">🚶 외출 — ${outList.length}명</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${outList.map(([name,v])=>
+          `<span style="background:#e8f0fe;color:#1a73e8;border:1px solid #b8d0f8;border-radius:20px;padding:4px 12px;font-size:13px">
+            ${name} <span style="opacity:.7;font-size:11px">${v.depart!=='-'?v.depart:''}~${v.arrive!=='-'?v.arrive:''} ${v.reason}</span>
+          </span>`).join('')}
+        </div></div>`;
+
+      document.getElementById('reasonResult').innerHTML = html;
+      document.getElementById('reasonMo').classList.add('open');
+      showToast(`📋 사유제출 ${cnt}명 로드 완료!`);
+    } catch(err){ showToast('❌ 파일 파싱 오류: '+err.message); }
+    input.value='';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function applyReason(){
+  if(!Object.keys(reasonData).length){ showToast('사유제출 데이터 없음'); return; }
+  const normName = n => n.replace(/\d+$/, '').replace(/\s/g,'').trim();
+  let cntLate=0, cntAbs=0, cntEarly=0;
+
+  Object.entries(reasonData).forEach(([name, v])=>{
+    const student = students.find(s=>s.name===name) ||
+                    students.find(s=>normName(s.name)===normName(name));
+    if(!student) return;
+    if(!att[curDate]) att[curDate]={};
+
+    if(v.type==='지각'){
+      // 사유지각 → 현재 미확인이면 지각으로, 이미 출석이면 유지
+      const cur = getSt(student.id);
+      if(cur==='none'){ att[curDate][student.id]={status:'late',time:v.arrive||''}; cntLate++; }
+    } else if(v.type==='결석'){
+      // 사유결석 → absent
+      att[curDate][student.id]={status:'absent',time:''}; cntAbs++;
+    } else if(v.type==='조기하원'){
+      // 조기하원 → 비고에 기록 (출결 상태는 변경 안 함)
+      cntEarly++;
+    }
+  });
+
+  save(); render(); stats(); closeReasonMo();
+  showToast(`⏰ 사유지각 ${cntLate}명 / ❌ 사유결석 ${cntAbs}명 / 🚪 조기하원 ${cntEarly}명 적용!`);
+}
+
+function closeReasonMo(){ document.getElementById('reasonMo').classList.remove('open'); }
+document.addEventListener('click',e=>{ if(e.target.id==='reasonMo') closeReasonMo(); });
 
 async function saveToSheet(){
   const _d=new Date(curDate+'T00:00:00');

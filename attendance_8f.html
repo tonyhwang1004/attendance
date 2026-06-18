@@ -479,7 +479,25 @@ function render(){
       const todayMentioned = checkExtraMention(schedInfo.extra, curDate);
       if(todayMentioned) extraHtml = `<div class="note-full" style="color:#d97706;margin-top:2px" onclick="openNoteMo('${s.name.replace(/'/g,'\\\'')}')" title="기타 일정">📌 ${todayMentioned}</div>`;
     }
-    d.innerHTML=`
+    // 사유제출 내용
+    const normN = n => n.replace(/\d+$/, '').replace(/\s/g,'').trim();
+    const reasonKey = Object.keys(reasonData).find(k => k===s.name || normN(k)===normN(s.name));
+    const rv = reasonKey ? reasonData[reasonKey] : null;
+    let reasonHtml = '';
+    if(rv){
+      const tc = {
+        '지각':    {bg:'#fff3e0',color:'#e8711a',border:'#f5cfa0',icon:'⏰'},
+        '결석':    {bg:'#fde8e8',color:'#d93025',border:'#f5b8b8',icon:'❌'},
+        '조기하원': {bg:'#f3e8ff',color:'#7c3aed',border:'#d8b4fe',icon:'🚪'},
+        '외출':    {bg:'#e8f0fe',color:'#1a73e8',border:'#b8d0f8',icon:'🚶'},
+      }[rv.type] || {bg:'#f0f4f8',color:'#6b7f99',border:'#d1dce8',icon:'📋'};
+      const tInfo = rv.type==='지각' && rv.arrive && rv.arrive!=='-' ? ' '+rv.arrive+' 도착' :
+                    rv.type==='조기하원' && rv.depart && rv.depart!=='-' ? ' '+rv.depart+' 출발' :
+                    rv.type==='외출' ? ' '+(rv.depart||'')+'~'+(rv.arrive||'') : '';
+      reasonHtml = '<div style="margin-top:6px;padding:5px 10px;background:'+tc.bg+';border:1px solid '+tc.border+';border-radius:8px;font-size:11px;color:'+tc.color+'">'
+        +tc.icon+' <b>'+rv.type+'</b>'+tInfo+' — '+rv.reason+'</div>';
+    }
+        d.innerHTML=`
       <div class="card-top">
         <div style="flex:1;min-width:0">
           <div class="snum">No.${s.num}</div>
@@ -492,11 +510,12 @@ function render(){
           <button class="ab xb ${st==='absent'?'on':''}" onclick="setSt('${s.id}','absent')" title="무단결석">❌</button>
         </div>
       </div>
-      ${(hasNote || extraHtml) ? `
+      ${(hasNote || extraHtml || reasonHtml) ? `
       <div class="note-row visible">
         ${tagsHtml ? `<div class="note-tags">${tagsHtml}</div>` : ''}
         ${noteTextHtml}
         ${extraHtml}
+        ${reasonHtml}
       </div>` : ''}`;
     grid.appendChild(d);
   });

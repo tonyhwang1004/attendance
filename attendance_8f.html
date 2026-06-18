@@ -807,12 +807,15 @@ async function saveToSheet(){
   const _d=new Date(curDate+'T00:00:00');
   if(_d.getDay()===0){showToast('일요일은 저장하지 않습니다.');return;}
   const records=students.map(s=>{ const si=getScheduleForDate(s.name,curDate); return {name:s.name,status:getSt(s.id),time:getTime(s.id),schedNote:si?si.dayText:''}; });
+  // 시트명: "6월8층출결" 형식
+  const d=new Date(curDate+'T00:00:00');
+  const sheetName=(d.getMonth()+1)+'월8층출결';
   const btn=document.getElementById('sheetBtn'); btn.disabled=true; btn.textContent='☁️ 저장 중...';
   try{
     const saveUrl = 'https://script.google.com/macros/s/AKfycbycsVj7HbpM-5Zhc6OhJAod-Co_0tIPld7wukcuc1NvgPsWs203pXrud2zImpRW2uXU/exec';
-    const res=await fetch(saveUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({date:curDate,floor:'8f',records})});
+    const res=await fetch(saveUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({date:curDate,floor:'8f',sheetName:sheetName,records})});
     const json=await res.json();
-    if(json.status==='ok') showToast('☁️ 구글 시트에 저장됐습니다!');
+    if(json.status==='ok') showToast('☁️ '+sheetName+' 시트에 저장됐습니다!');
     else throw new Error();
   }catch(e){ showToast('❌ 시트 저장 실패'); }
   finally{ btn.disabled=false; btn.textContent='☁️ 시트 저장'; }

@@ -327,7 +327,7 @@ function handleScheduleXlsx(input){
       }
 
       // 8층 학생 명단과 대조해서 필터링
-      const normN = n => n.replace(/[\(\(][^\)\)]*[\)\)]/g,'').replace(/\d+$/,'').replace(/\s/g,'').trim();
+      const normN = n => n.replace(/\([^)]*\)/g,'').replace(/\d+$/,'').replace(/\s/g,'').trim();
       const parsed = {};
       const studentNames = students.map(s => s.name);
 
@@ -499,7 +499,7 @@ function render(){
       if(todayMentioned) extraHtml = `<div class="note-full" style="color:#d97706;margin-top:2px" onclick="openNoteMo('${s.name.replace(/'/g,'\\\'')}')" title="기타 일정">📌 ${todayMentioned}</div>`;
     }
     // 사유제출 내용
-    const normN = n => n.replace(/[\(\(][^\)\)]*[\)\)]/g,'').replace(/\d+$/,'').replace(/\s/g,'').trim();
+    const normN = n => n.replace(/\([^)]*\)/g,'').replace(/\d+$/,'').replace(/\s/g,'').trim();
     const reasonKey = Object.keys(reasonData).find(k => k===s.name || normN(k)===normN(s.name));
     const rv = reasonKey ? reasonData[reasonKey] : null;
     let reasonHtml = '';
@@ -874,7 +874,7 @@ function getScheduledArrivalMin(dayText){
 
 // 입실 기록 처리 — 정기일정 기반 출결 판단
 function processEnterRecords(enterRecords){
-  const normName = n => n.replace(/[\(\(][^\)\)]*[\)\)]/g,'').replace(/\d+$/,'').replace(/\s/g,'').trim();
+  const normName = n => n.replace(/\([^)]*\)/g,'').replace(/\d+$/,'').replace(/\s/g,'').trim();
 
   // 첫 입실만
   const firstEnter = {};
@@ -966,7 +966,7 @@ function applyXlsx(){
   const d=new Date(curDate+'T00:00:00');
   if(d.getDay()===0){showToast('일요일은 자율등원일입니다.');return;}
   att[curDate]={};
-  const normName=n=>n.replace(/[\(\(][^\)\)]*[\)\)]/g,'').replace(/\d+$/,'').replace(/\s/g,'').trim();
+  const normName=n=>n.replace(/\([^)]*\)/g,'').replace(/\d+$/,'').replace(/\s/g,'').trim();
   let cntP=0,cntL=0,cntA=0;
 
   (xlsxParsed.present||[]).forEach(r=>{
@@ -1081,7 +1081,7 @@ function handleReasonCsv(input){
 
 function applyReason(){
   if(!Object.keys(reasonData).length){ showToast('사유제출 데이터 없음'); return; }
-  const normName = n => n.replace(/[\(\(][^\)\)]*[\)\)]/g,'').replace(/\d+$/,'').replace(/\s/g,'').trim();
+  const normName = n => n.replace(/\([^)]*\)/g,'').replace(/\d+$/,'').replace(/\s/g,'').trim();
   let cntLate=0, cntAbs=0, cntEarly=0;
 
   Object.entries(reasonData).forEach(([name, v])=>{

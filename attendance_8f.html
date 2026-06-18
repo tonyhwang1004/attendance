@@ -71,7 +71,9 @@
   .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;transition:background .2s}
   .card[data-s=present]::before{background:var(--present)}
   .card[data-s=late]::before{background:var(--late)}
+  .card[data-s=late_approved]::before{background:var(--late)}
   .card[data-s=absent]::before{background:var(--absent)}
+  .card[data-s=absent_approved]::before{background:#f5a623}
   .card[data-s=none]::before{background:#dde3ea}
   .card:hover{border-color:#f5cfa0;box-shadow:0 6px 18px rgba(232,113,26,.12);transform:translateY(-1px)}
   .card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -598,8 +600,8 @@ function setAll(s){
 function stats(){
   const n=students.length;
   const p=students.filter(s=>getSt(s.id)==='present').length;
-  const l=students.filter(s=>getSt(s.id)==='late').length;
-  const a=students.filter(s=>getSt(s.id)==='absent').length;
+  const l=students.filter(s=>getSt(s.id)==='late'||getSt(s.id)==='late_approved').length;
+  const a=students.filter(s=>getSt(s.id)==='absent'||getSt(s.id)==='absent_approved').length;
   const c=p+l+a;
   document.getElementById('sT').textContent=n;
   document.getElementById('sP').textContent=p;
@@ -663,7 +665,7 @@ function exportCSV(){
     rows.push([s.num,s.name,...dates.map(d=>{
       const v=(att[d]||{})[s.id];
       const st=v?(typeof v==='object'?v.status:v):'';
-      return ({present:'출석',late:'무단지각',absent:'무단결석'})[st]||'';
+      return ({present:'출석',late:'무단지각',late_approved:'사유지각',absent:'무단결석',absent_approved:'사유결석(승인)'})[st]||'';
     }), note]);
   });
   const blob=new Blob(['\uFEFF'+rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});
@@ -673,20 +675,40 @@ function exportCSV(){
 }
 
 function exportSummary(){
-  const l=students.filter(s=>getSt(s.id)==='late');
-  const a=students.filter(s=>getSt(s.id)==='absent');
-  const p=students.filter(s=>getSt(s.id)==='present');
-  const lApproved = l.filter(s=>{ const si=getScheduleForDate(s.name,curDate); return si&&si.dayText&&si.dayText.includes('지각'); });
-  const aApproved = a.filter(s=>{ const si=getScheduleForDate(s.name,curDate); return si&&si.dayText&&si.dayText.includes('결석'); });
-  const lUnauth = l.filter(s=>!lApproved.includes(s));
-  const aUnauth = a.filter(s=>!aApproved.includes(s));
-  let text = `[8층 출결 요약] ${curDate}\n전체: ${students.length}명\n✅ 출석: ${p.length}명\n`;
-  text += `⚠️ 지각: ${l.length}명`;
-  if(lApproved.length) text += ` (승인: ${lApproved.map(s=>s.name).join(', ')})`;
-  if(lUnauth.length) text += ` (무단: ${lUnauth.map(s=>s.name).join(', ')})`;
-  text += `\n❌ 결석: ${a.length}명`;
-  if(aApproved.length) text += ` (승인: ${aApproved.map(s=>s.name).join(', ')})`;
-  if(aUnauth.length) text += ` (무단: ${aUnauth.map(s=>s.name).join(', ')})`;
+  const p        = students.filter(s=>getSt(s.id)==='present');
+  const lUnauth  = students.filter(s=>getSt(s.id)==='late');           // 무단지각
+  const lApproved= students.filter(s=>getSt(s.id)==='late_approved');  // 사유지각
+  const aUnauth  = students.filter(s=>getSt(s.id)==='absent');         // 무단결석
+  const aApproved= students.filter(s=>getSt(s.id)==='absent_approved');// 사유결석
+
+  // 정기일정 결석(승인)
+  const aSchedApproved = students.filter(s=>{
+    const si = getScheduleForDate(s.name, curDate);
+    return si && si.dayText && si.dayText.includes('결석') &&
+           getSt(s.id) !== 'present' && getSt(s.id) !== 'absent' && getSt(s.id) !== 'absent_approved';
+  });
+
+  const totalLate   = lUnauth.length + lApproved.length;
+  const totalAbsent = aUnauth.length + aApproved.length + aSchedApproved.length;
+  const unconfirmed = students.filter(s=>getSt(s.id)==='none');
+
+  let text = `[8층 출결 요약] ${curDate}\n`;
+  text += `전체: ${students.length}명\n`;
+  text += `✅ 출석: ${p.length}명\n`;
+
+  text += `⚠️ 지각: ${totalLate}명`;
+  if(lApproved.length) text += ` (사유: ${lApproved.map(s=>s.name).join(', ')})`;
+  if(lUnauth.length)   text += ` (무단: ${lUnauth.map(s=>s.name).join(', ')})`;
+  text += '\n';
+
+  text += `❌ 결석: ${totalAbsent}명`;
+  if(aApproved.length)     text += ` (사유: ${aApproved.map(s=>s.name).join(', ')})`;
+  if(aSchedApproved.length)text += ` (정기: ${aSchedApproved.map(s=>s.name).join(', ')})`;
+  if(aUnauth.length)       text += ` (무단: ${aUnauth.map(s=>s.name).join(', ')})`;
+  text += '\n';
+
+  if(unconfirmed.length) text += `⬜ 미확인: ${unconfirmed.length}명 (${unconfirmed.map(s=>s.name).join(', ')})`;
+
   navigator.clipboard.writeText(text).then(()=>showToast('📋 요약 복사 완료!')).catch(()=>showToast('⚠️ 복사 실패'));
 }
 
@@ -928,7 +950,7 @@ function applyXlsx(){
   });
   (xlsxParsed.absentSched||[]).forEach(r=>{
     const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name));
-    if(s){att[curDate][s.id]={status:'absent',time:''};cntA++;}
+    if(s){att[curDate][s.id]={status:'absent_approved',time:''};cntA++;}
   });
   // 나머지 미확인은 그대로 둠 (강제 지각 처리 안 함)
 
@@ -960,8 +982,7 @@ function handleReasonCsv(input){
         const reason   = (cols[7]||'').trim(); // 사유
 
         if(!name) continue;
-        // 8층만 처리 (송도_자유석, 송도_지정석)
-        if(!location.includes('자유석') && !location.includes('지정석')) continue;
+        // 승인완료만 처리 (위치 무관 - 학생이 잘못된 위치로 제출할 수 있음)
         if(approved !== '승인완료') continue;
 
         // 중복 시 가장 최신 유지 (나중에 제출한 것)
@@ -1041,14 +1062,14 @@ function applyReason(){
     if(!att[curDate]) att[curDate]={};
 
     if(v.type==='지각'){
-      // 사유지각 → 현재 미확인이면 지각으로, 이미 출석이면 유지
+      // 사유지각 → 미확인이면 사유지각으로, 이미 출석이면 유지
       const cur = getSt(student.id);
-      if(cur==='none'){ att[curDate][student.id]={status:'late',time:v.arrive||''}; cntLate++; }
+      if(cur==='none'){ att[curDate][student.id]={status:'late_approved',time:v.arrive||''}; cntLate++; }
     } else if(v.type==='결석'){
-      // 사유결석 → absent
-      att[curDate][student.id]={status:'absent',time:''}; cntAbs++;
+      // 사유결석 → absent_approved (승인된 결석)
+      att[curDate][student.id]={status:'absent_approved',time:''}; cntAbs++;
     } else if(v.type==='조기하원'){
-      // 조기하원 → 비고에 기록 (출결 상태는 변경 안 함)
+      // 조기하원 → 상태 변경 없음, 비고에만 표시
       cntEarly++;
     }
   });

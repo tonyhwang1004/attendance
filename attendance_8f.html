@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>출결 관리 - 김엄마독서실 8층</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#f0f4f8;--surface:#ffffff;--border:#d1dce8;--accent:#e8711a;--accent2:#1a73e8;--present:#1e9e57;--late:#e8900a;--absent:#d93025;--text:#1a2332;--muted:#6b7f99;--card:#f8fafc}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(232,113,26,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(232,113,26,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+  .app{position:relative;z-index:1}
+  header{background:linear-gradient(135deg,#e8711a,#cc5a0d);border-bottom:1px solid #c85a0d;padding:18px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;box-shadow:0 4px 16px rgba(232,113,26,.25)}
+  .logo{width:42px;height:42px;background:rgba(255,255,255,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 16px rgba(255,255,255,.2)}
+  h1{font-size:20px;font-weight:700;color:#fff}
+  h1 span{color:#ffd4a8;font-family:'Space Mono',monospace}
+  .clock{font-family:'Space Mono',monospace;font-size:12px;color:rgba(255,255,255,.8);background:rgba(255,255,255,.15);padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.2)}
+  .spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .center{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:55vh;gap:16px}
+  .btn{padding:8px 16px;border-radius:9px;border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Noto Sans KR',sans-serif;white-space:nowrap}
+  .btn:active{transform:scale(.97)}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#cc5a0d);color:#fff;box-shadow:0 3px 12px rgba(232,113,26,.3)}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(232,113,26,.4)}
+  .btn-green{background:#e8f5ee;color:var(--present);border:1px solid #b8dfc9}
+  .btn-green:hover{background:#d4eddf}
+  .btn-orange{background:#fff3e8;color:var(--accent);border:1px solid #f5cfa0}
+  .btn-orange:hover{background:#ffe8d0}
+  .btn-blue{background:#e8f0fe;color:var(--accent2);border:1px solid #b8d0f8}
+  .btn-blue:hover{background:#d4e4fc}
+  .btn-dim{background:#f0f4f8;color:var(--muted);border:1px solid var(--border)}
+  .btn-dim:hover{color:var(--text);border-color:var(--accent)}
+  .btn-sheet{background:#e6f4ea;color:#1e8e3e;border:1px solid #b8dfc9}
+  .btn-sheet:hover{background:#ceead6}
+  .btn-sheet:disabled{background:#f0f4f8;color:#b0bec5;border-color:#dde3ea;cursor:not-allowed}
+  .btn-excel{background:#e8f0fe;color:#1a73e8;border:1px solid #b8d0f8;display:inline-flex;align-items:center;gap:6px}
+  .btn-excel:hover{background:#d4e4fc}
+  .btn-sched{background:#f3e8ff;color:#7c3aed;border:1px solid #d8b4fe;display:inline-flex;align-items:center;gap:6px}
+  .btn-sched:hover{background:#ede0ff}
+  .toolbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .tleft{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .dselector{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:7px 14px}
+  .dselector input[type=date]{background:transparent;border:none;color:var(--text);font-size:14px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;outline:none;padding:0}
+  .sched-indicator{display:none;align-items:center;gap:6px;background:#f3e8ff;border:1px solid #d8b4fe;border-radius:8px;padding:5px 12px;font-size:12px;color:#7c3aed;font-weight:600}
+  .sched-indicator.active{display:flex}
+  .stats{padding:18px 32px;display:flex;gap:14px;flex-wrap:wrap}
+  .sc{flex:1;min-width:120px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden;transition:transform .2s;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .sc:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.1)}
+  .sc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+  .sc.t::after{background:linear-gradient(90deg,var(--accent),#cc5a0d)}
+  .sc.p::after{background:var(--present)}
+  .sc.l::after{background:var(--late)}
+  .sc.a::after{background:var(--absent)}
+  .sc.n::after{background:#b0bec5}
+  .sl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:500}
+  .sv{font-family:'Space Mono',monospace;font-size:30px;font-weight:700;line-height:1}
+  .sc.t .sv{color:var(--accent)}.sc.p .sv{color:var(--present)}.sc.l .sv{color:var(--late)}.sc.a .sv{color:var(--absent)}.sc.n .sv{color:#90a4ae}
+  .sp{font-size:11px;color:var(--muted);margin-top:4px;font-family:'Space Mono',monospace}
+  .content{padding:0 32px 32px}
+  .ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px}
+  .ct{font-size:15px;font-weight:600;color:var(--muted)}
+  .ct b{color:var(--text)}
+  .sb{position:relative;width:210px}
+  .sb input{width:100%;background:#fff;border:1px solid var(--border);border-radius:9px;padding:8px 12px 8px 34px;color:var(--text);font-size:13px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  .sb input:focus{border-color:var(--accent)}
+  .sb input::placeholder{color:#b0bec5}
+  .sb::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+  .card{background:#fff;border:1px solid var(--border);border-radius:13px;padding:12px 16px;transition:all .2s;position:relative;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;transition:background .2s}
+  .card[data-s=present]::before{background:var(--present)}
+  .card[data-s=late]::before{background:var(--late)}
+  .card[data-s=absent]::before{background:var(--absent)}
+  .card[data-s=none]::before{background:#dde3ea}
+  .card:hover{border-color:#f5cfa0;box-shadow:0 6px 18px rgba(232,113,26,.12);transform:translateY(-1px)}
+  .card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .snum{font-family:'Space Mono',monospace;font-size:10px;color:#90a4ae;margin-bottom:2px}
+  .sname{font-size:15px;font-weight:700;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+  .abtns{display:flex;gap:6px;flex-shrink:0}
+  .ab{width:36px;height:36px;border-radius:8px;border:1px solid #dde3ea;background:#f8fafc;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+  .ab:hover{transform:scale(1.12);box-shadow:0 2px 8px rgba(0,0,0,.1)}
+  .ab.pb{border-color:#b8dfc9}.ab.lb{border-color:#f5d5a0}.ab.xb{border-color:#f5b8b8}
+  .ab.on.pb{background:#e8f5ee;border-color:var(--present);box-shadow:0 0 8px rgba(30,158,87,.25)}
+  .ab.on.lb{background:#fff3e0;border-color:var(--late);box-shadow:0 0 8px rgba(232,144,10,.25)}
+  .ab.on.xb{background:#fde8e8;border-color:var(--absent);box-shadow:0 0 8px rgba(217,48,37,.25)}
+  .note-row{margin-top:8px;border-top:1px dashed #e4eaf2;padding-top:7px;display:none}
+  .note-row.visible{display:block}
+  .note-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
+  .ntag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap}
+  .ntag.sched-late{background:#fff3e0;color:#b45309;border:1px solid #fcd34d}
+  .ntag.sched-depart{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+  .ntag.sched-absent{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+  .ntag.sched-out{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+  .ntag.sched-special{background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff}
+  .ntag.sched-normal{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+  .note-full{font-size:11px;color:var(--muted);line-height:1.5;cursor:pointer}
+  .note-full:hover{color:var(--accent)}
+  .sched-banner{background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;padding:10px 32px;font-size:13px;display:none;align-items:center;gap:10px;flex-wrap:wrap}
+  .sched-banner.show{display:flex}
+  .sched-banner span{opacity:.85}
+  .bbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:12px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;z-index:100;box-shadow:0 -4px 16px rgba(0,0,0,.08)}
+  .pw{flex:1;min-width:180px;max-width:380px}
+  .pl{font-size:11px;color:var(--muted);margin-bottom:5px;display:flex;justify-content:space-between}
+  .pt{height:6px;background:#e8edf2;border-radius:3px;overflow:hidden;display:flex}
+  .pf{height:100%;border-radius:3px;transition:width .3s ease}
+  .pp{background:var(--present)}.lp{background:var(--late)}.ap{background:var(--absent)}
+  .mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center;padding:20px}
+  .mo.open{display:flex}
+  .md{background:#fff;border:1px solid var(--border);border-radius:20px;padding:28px;width:100%;max-width:660px;max-height:82vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+  .mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+  .mt{font-size:17px;font-weight:700;color:var(--text)}
+  .mc{width:30px;height:30px;border-radius:8px;background:#f0f4f8;border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s}
+  .mc:hover{background:#fde8e8;color:var(--absent);border-color:var(--absent)}
+  .badge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;font-family:'Space Mono',monospace}
+  .bp{background:#e8f5ee;color:var(--present)}.bl{background:#fff3e0;color:var(--late)}.ba{background:#fde8e8;color:var(--absent)}
+  .toast{position:fixed;bottom:82px;right:20px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 18px;font-size:13px;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:400;transform:translateY(16px);opacity:0;transition:all .3s;max-width:320px}
+  .toast.show{transform:translateY(0);opacity:1}
+  .empty{text-align:center;padding:50px 20px;color:var(--muted);grid-column:1/-1}
+  .note-detail-item{padding:10px 14px;border-radius:10px;border:1px solid var(--border);margin-bottom:8px;background:#fafbfd}
+  .note-detail-label{font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .note-detail-val{font-size:13px;color:var(--text);line-height:1.6}
+  .dow-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;background:#fff3e8;color:#e8711a;margin-right:6px}
+  @media(max-width:600px){header,.toolbar,.stats,.content,.bbar{padding-left:14px;padding-right:14px}.grid{grid-template-columns:1fr}.sc{min-width:100px}.sched-banner{padding:10px 14px}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="app">
+  <div class="toast" id="toast"></div>
+
+  <header>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="logo">📋</div>
+      <div>
+        <h1><span>ATTEND</span>ANCE</h1>
+        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">김엄마독서실 8층 출결관리</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div class="sched-indicator" id="schedIndicator">📅 정기일정 로드됨</div>
+      <div class="clock" id="clock"></div>
+    </div>
+  </header>
+
+  <div class="sched-banner" id="schedBanner">
+    <span>📅</span>
+    <span id="schedBannerTxt">정기일정이 적용되었습니다.</span>
+    <button class="btn btn-dim" style="font-size:11px;padding:4px 10px;margin-left:auto" onclick="clearSchedule()">🗑 일정 초기화</button>
+  </div>
+
+  <div class="center" id="scLoad">
+    <div class="spinner"></div>
+    <div style="color:var(--muted);font-size:14px" id="loadMsg">구글 시트 연결 중...</div>
+  </div>
+
+  <div id="scMain" style="display:none">
+    <div class="toolbar">
+      <div class="tleft">
+        <div class="dselector">
+          <span>📅</span>
+          <input type="date" id="dInput" onchange="changeDate()">
+        </div>
+        <button class="btn btn-green" onclick="setAll('present')">✅ 전체 출석</button>
+        <label class="btn btn-excel" style="cursor:pointer">📂 출입기록 업로드<input type="file" id="xlsxInput" accept=".xlsx,.xls" style="display:none" onchange="handleXlsx(this)"></label>
+        <label class="btn btn-sched" style="cursor:pointer" title="정기일정 엑셀 파일 업로드">📅 정기일정 업로드<input type="file" id="schedInput" accept=".xlsx,.xls" style="display:none" onchange="handleScheduleXlsx(this)"></label>
+        <button class="btn btn-dim" onclick="reload()">🔄 명단 새로고침</button>
+      </div>
+      <button class="btn btn-orange" onclick="openHist()">📜 출결 기록</button>
+    </div>
+
+    <div class="mo" id="xlsxMo">
+      <div class="md" style="max-width:720px">
+        <div class="mh">
+          <div class="mt">📂 출입기록 분석 결과</div>
+          <button class="mc" onclick="closeXlsxMo()">✕</button>
+        </div>
+        <div id="xlsxResult"></div>
+        <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end">
+          <button class="btn btn-dim" onclick="closeXlsxMo()">닫기</button>
+          <button class="btn btn-primary" onclick="applyXlsx()">✅ 적용하기</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mo" id="noteMo">
+      <div class="md" style="max-width:520px">
+        <div class="mh">
+          <div class="mt" id="noteMoTitle">📋 정기일정 상세</div>
+          <button class="mc" onclick="closeNoteMo()">✕</button>
+        </div>
+        <div id="noteMoContent"></div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="sc t"><div class="sl">전체</div><div class="sv" id="sT">0</div></div>
+      <div class="sc p"><div class="sl">✅ 출석</div><div class="sv" id="sP">0</div><div class="sp" id="sPp"></div></div>
+      <div class="sc l"><div class="sl">⚠️ 무단지각</div><div class="sv" id="sL">0</div><div class="sp" id="sLp"></div></div>
+      <div class="sc a"><div class="sl">❌ 무단결석</div><div class="sv" id="sA">0</div><div class="sp" id="sAp"></div></div>
+      <div class="sc n"><div class="sl">⬜ 미확인</div><div class="sv" id="sN">0</div></div>
+    </div>
+
+    <div class="content">
+      <div class="ch">
+        <div class="ct">학생 목록 &nbsp;<b id="cnt">0명</b></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select id="filterSched" onchange="render()" style="background:#fff;border:1px solid var(--border);border-radius:9px;padding:7px 12px;color:var(--text);font-size:13px;font-family:'Noto Sans KR',sans-serif;outline:none;cursor:pointer">
+            <option value="all">전체 보기</option>
+            <option value="hasnote">📅 일정있는 학생</option>
+            <option value="late_sched">⚠️ 승인된 지각</option>
+            <option value="absent_sched">❌ 승인된 결석</option>
+          </select>
+          <div class="sb"><input type="text" id="srch" placeholder="이름 검색..." oninput="render()"></div>
+        </div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="bbar">
+      <div class="pw">
+        <div class="pl"><span>출결 현황</span><span id="pLabel">0 / 0</span></div>
+        <div class="pt">
+          <div class="pf pp" id="pgP" style="width:0%"></div>
+          <div class="pf lp" id="pgL" style="width:0%"></div>
+          <div class="pf ap" id="pgA" style="width:0%"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-sheet" onclick="saveToSheet()" id="sheetBtn">☁️ 시트 저장</button>
+        <button class="btn btn-blue" onclick="exportCSV()">💾 CSV 저장</button>
+        <button class="btn btn-orange" onclick="exportSummary()">📋 요약 복사</button>
+      </div>
+    </div>
+
+    <div class="mo" id="histMo">
+      <div class="md">
+        <div class="mh">
+          <div class="mt">📜 날짜별 출결 기록</div>
+          <button class="mc" onclick="closeMo()">✕</button>
+        </div>
+        <div id="histC"></div>
+      </div>
+    </div>
+    <div style="height:76px"></div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// 8층 재학생 명단 GAS URL
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbycsVj7HbpM-5Zhc6OhJAod-Co_0tIPld7wukcuc1NvgPsWs203pXrud2zImpRW2uXU/exec?action=students&floor=8';
+const SK = 'att_8f';
+const SK_SCHED = 'att_8f_sched';
+// ════════════════════════════════════════
+
+let students=[], att={}, curDate=today(), xlsxParsed={};
+let scheduleData = {};
+
+function today(){ return new Date().toISOString().slice(0,10); }
+
+(function tick(){
+  const n=new Date();
+  const el=document.getElementById('clock');
+  if(el) el.textContent=n.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'})+' '+n.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  setTimeout(tick,1000);
+})();
+
+function handleScheduleXlsx(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      const header = (rows[0]||[]).map(h=>String(h).trim());
+      const nameIdx   = header.findIndex(h=>h.includes('이름'));
+      const monIdx    = header.findIndex(h=>h.includes('월'));
+      const tueIdx    = header.findIndex(h=>h.includes('화'));
+      const wedIdx    = header.findIndex(h=>h.includes('수'));
+      const thuIdx    = header.findIndex(h=>h.includes('목'));
+      const friIdx    = header.findIndex(h=>h.includes('금'));
+      const satIdx    = header.findIndex(h=>h.includes('토'));
+      const extraIdx  = header.findIndex(h=>h.includes('기타'));
+      const statusIdx = header.findIndex(h=>h.includes('승인'));
+      if(nameIdx===-1){showToast('❌ 이름 컬럼을 찾을 수 없습니다');input.value='';return;}
+      const parsed = {};
+      for(let i=1;i<rows.length;i++){
+        const row = rows[i];
+        const name = String(row[nameIdx]||'').trim();
+        if(!name) continue;
+        parsed[name] = {
+          mon:String(row[monIdx]||'').trim(), tue:String(row[tueIdx]||'').trim(),
+          wed:String(row[wedIdx]||'').trim(), thu:String(row[thuIdx]||'').trim(),
+          fri:String(row[friIdx]||'').trim(), sat:String(row[satIdx]||'').trim(),
+          extra:String(row[extraIdx]||'').trim(), approvalStatus:String(row[statusIdx]||'').trim()
+        };
+      }
+      scheduleData = parsed;
+      localStorage.setItem(SK_SCHED, JSON.stringify(scheduleData));
+      const cnt = Object.keys(scheduleData).length;
+      showSchedBanner(`정기일정 ${cnt}명 적용됨 — 카드 하단 비고란에서 확인하세요.`);
+      document.getElementById('schedIndicator').classList.add('active');
+      render();
+      showToast(`📅 정기일정 ${cnt}명 로드 완료!`);
+    } catch(err){ showToast('❌ 파일 파싱 오류: '+err.message); }
+    input.value='';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function clearSchedule(){
+  scheduleData = {};
+  localStorage.removeItem(SK_SCHED);
+  document.getElementById('schedBanner').classList.remove('show');
+  document.getElementById('schedIndicator').classList.remove('active');
+  render();
+  showToast('🗑 정기일정이 초기화되었습니다');
+}
+
+function showSchedBanner(msg){
+  document.getElementById('schedBannerTxt').textContent = msg;
+  document.getElementById('schedBanner').classList.add('show');
+}
+
+const DOW_KEY = ['sun','mon','tue','wed','thu','fri','sat'];
+const DOW_LABEL = ['일','월','화','수','목','금','토'];
+
+function getScheduleForDate(studentName, dateStr){
+  const entry = scheduleData[studentName];
+  if(!entry) return null;
+  const dow = new Date(dateStr+'T00:00:00').getDay();
+  const key = DOW_KEY[dow];
+  if(key === 'sun') return { dayText: entry.extra||'', extra: entry.extra||'', dow, key, approvalStatus: entry.approvalStatus };
+  const dayText = entry[key] || '';
+  return { dayText, extra: entry.extra||'', dow, key, approvalStatus: entry.approvalStatus };
+}
+
+function parseNoteTags(schedInfo){
+  if(!schedInfo) return [];
+  const { dayText, approvalStatus } = schedInfo;
+  const tags = [];
+  if(!dayText || dayText.toLowerCase() === 'nan') return tags;
+  if(dayText.includes('결석')) tags.push({type:'sched-absent', icon:'❌', label:'결석 예정'});
+  const lateMatch = dayText.match(/지각\s*(\d{1,2}시(?:\d{1,2}분)?)/);
+  if(lateMatch) tags.push({type:'sched-late', icon:'⏰', label:'지각 '+lateMatch[1]});
+  else if(dayText.includes('지각')) tags.push({type:'sched-late', icon:'⏰', label:'지각 예정'});
+  const departMatch = dayText.match(/조퇴\s*(\d{1,2}시(?:\d{1,2}분)?)/);
+  if(departMatch) tags.push({type:'sched-depart', icon:'🚪', label:'조퇴 '+departMatch[1]});
+  if(dayText.includes('외출')) tags.push({type:'sched-out', icon:'🚶', label:'외출 있음'});
+  if(tags.length===0 && (dayText.includes('8시') || dayText.includes('등원 8'))) tags.push({type:'sched-normal', icon:'✅', label:'정상 등원'});
+  if(approvalStatus && approvalStatus.includes('승인')) tags.push({type:'sched-special', icon:'✓', label:approvalStatus});
+  return tags;
+}
+
+async function reload(){ await loadStudents(); }
+
+async function loadStudents(){
+  show('scLoad'); hide('scMain');
+  setMsg('구글 시트 연결 중...');
+  const savedSched = localStorage.getItem(SK_SCHED);
+  if(savedSched){
+    try{ scheduleData = JSON.parse(savedSched); }catch(e){}
+    if(Object.keys(scheduleData).length > 0){
+      showSchedBanner(`정기일정 ${Object.keys(scheduleData).length}명 복원됨`);
+      document.getElementById('schedIndicator').classList.add('active');
+    }
+  }
+  try{
+    const res = await fetch(GAS_URL);
+    const json = await res.json();
+    // 8층 명단만 필터링
+    let list = [];
+    if(Array.isArray(json)){
+      list = json.filter(s => !s.grade || s.grade !== '재수').map(s => s.name||s);
+    } else if(json.status === 'ok' && json.students){
+      list = json.students;
+    }
+    if(list.length > 0){
+      students = list.map((name, i) => ({
+        id: 's'+i, num: String(i+1), name: (typeof name === 'string' ? name : name.name||'').trim()
+      })).filter(s => s.name);
+      localStorage.setItem(SK+'_students', JSON.stringify(students));
+      startApp();
+      showToast(`✅ 8층 학생 ${students.length}명 불러왔습니다!`);
+      return;
+    }
+    throw new Error('데이터 없음');
+  }catch(e){
+    console.warn('GAS 실패:', e);
+    setMsg('오프라인 모드로 전환 중...');
+    const bk = localStorage.getItem(SK+'_students');
+    if(bk){
+      students = JSON.parse(bk);
+      startApp();
+      showToast('⚠️ 오프라인 모드 (저장된 명단)');
+    } else {
+      setMsg('❌ 연결 실패 - 인터넷 확인 후 새로고침 해주세요');
+    }
+  }
+}
+
+function setMsg(t){ const e=document.getElementById('loadMsg'); if(e) e.textContent=t; }
+
+function startApp(){
+  const saved = localStorage.getItem(SK);
+  if(saved) att = JSON.parse(saved);
+  curDate = today();
+  if(!att[curDate]) att[curDate]={};
+  document.getElementById('dInput').value = curDate;
+  hide('scLoad'); show('scMain');
+  render(); stats();
+}
+
+function render(){
+  const q=(document.getElementById('srch').value||'').toLowerCase();
+  const filterVal = document.getElementById('filterSched').value;
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+  let f=students.filter(s=>s.name.toLowerCase().includes(q));
+  if(filterVal !== 'all'){
+    f = f.filter(s => {
+      const si = getScheduleForDate(s.name, curDate);
+      if(!si || !si.dayText || si.dayText.toLowerCase()==='nan') return false;
+      if(filterVal === 'hasnote') return !!si.dayText;
+      if(filterVal === 'late_sched') return si.dayText.includes('지각');
+      if(filterVal === 'absent_sched') return si.dayText.includes('결석');
+      return true;
+    });
+  }
+  document.getElementById('cnt').textContent=`${f.length}명`;
+  if(!f.length){
+    grid.innerHTML='<div class="empty"><div style="font-size:40px;margin-bottom:12px">🔍</div><div>검색 결과 없음</div></div>';
+    return;
+  }
+  f.forEach(s=>{
+    const st=getSt(s.id);
+    const tm=getTime(s.id);
+    const schedInfo = getScheduleForDate(s.name, curDate);
+    const tags = parseNoteTags(schedInfo);
+    const hasNote = schedInfo && schedInfo.dayText && schedInfo.dayText.toLowerCase() !== 'nan';
+    const d=document.createElement('div');
+    d.className='card'; d.dataset.s=st; d.id='c'+s.id;
+    let tagsHtml = tags.length > 0 ? tags.map(t=>`<span class="ntag ${t.type}">${t.icon} ${t.label}</span>`).join('') : '';
+    let noteTextHtml = '';
+    if(hasNote && schedInfo.dayText){
+      const short = schedInfo.dayText.length > 40 ? schedInfo.dayText.slice(0,40)+'...' : schedInfo.dayText;
+      noteTextHtml = `<div class="note-full" onclick="openNoteMo('${s.name.replace(/'/g,'\\\'')}')" title="클릭하여 상세 보기">${short}</div>`;
+    }
+    let extraHtml = '';
+    if(schedInfo && schedInfo.extra){
+      const todayMentioned = checkExtraMention(schedInfo.extra, curDate);
+      if(todayMentioned) extraHtml = `<div class="note-full" style="color:#d97706;margin-top:2px" onclick="openNoteMo('${s.name.replace(/'/g,'\\\'')}')" title="기타 일정">📌 ${todayMentioned}</div>`;
+    }
+    d.innerHTML=`
+      <div class="card-top">
+        <div style="flex:1;min-width:0">
+          <div class="snum">No.${s.num}</div>
+          <div class="sname">${s.name}</div>
+          ${tm ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;font-family:'Space Mono',monospace">⏰ ${tm}</div>` : ''}
+        </div>
+        <div class="abtns">
+          <button class="ab pb ${st==='present'?'on':''}" onclick="setSt('${s.id}','present')" title="출석">✅</button>
+          <button class="ab lb ${st==='late'?'on':''}" onclick="setSt('${s.id}','late')" title="무단지각">⚠️</button>
+          <button class="ab xb ${st==='absent'?'on':''}" onclick="setSt('${s.id}','absent')" title="무단결석">❌</button>
+        </div>
+      </div>
+      ${(hasNote || extraHtml) ? `
+      <div class="note-row visible">
+        ${tagsHtml ? `<div class="note-tags">${tagsHtml}</div>` : ''}
+        ${noteTextHtml}
+        ${extraHtml}
+      </div>` : ''}`;
+    grid.appendChild(d);
+  });
+}
+
+function checkExtraMention(extraText, dateStr){
+  if(!extraText) return null;
+  const d = new Date(dateStr+'T00:00:00');
+  const month = d.getMonth()+1;
+  const day = d.getDate();
+  const patterns = [
+    new RegExp(month+'\\/'+day+'[일]?\\s*[^,/]*'),
+    new RegExp(month+'월\\s*'+day+'일?[^,/]*'),
+  ];
+  for(const p of patterns){
+    const m = extraText.match(p);
+    if(m) return m[0].trim().slice(0,50);
+  }
+  return null;
+}
+
+function openNoteMo(name){
+  const s = students.find(st=>st.name===name);
+  if(!s) return;
+  const entry = scheduleData[name];
+  if(!entry){ showToast('정기일정 없음'); return; }
+  document.getElementById('noteMoTitle').textContent = `📋 ${name} — 정기일정`;
+  const dow = new Date(curDate+'T00:00:00').getDay();
+  const todayKey = DOW_KEY[dow];
+  const days = [
+    {key:'mon',label:'월요일'},{key:'tue',label:'화요일'},{key:'wed',label:'수요일'},
+    {key:'thu',label:'목요일'},{key:'fri',label:'금요일'},{key:'sat',label:'토요일'}
+  ];
+  let html = '';
+  days.forEach(d=>{
+    const val = entry[d.key];
+    if(!val || val.toLowerCase()==='nan') return;
+    const isToday = d.key === todayKey;
+    html += `<div class="note-detail-item" style="${isToday?'border-color:#e8711a;background:#fff8f3;':''}">
+      <div class="note-detail-label"><span class="dow-badge" style="${isToday?'background:#e8711a;color:#fff;':''}">${d.label}${isToday?' ← 오늘':''}</span></div>
+      <div class="note-detail-val">${val}</div>
+    </div>`;
+  });
+  if(entry.extra) html += `<div class="note-detail-item" style="border-color:#d97706;background:#fffbf0"><div class="note-detail-label"><span class="dow-badge" style="background:#d97706;color:#fff">기타</span></div><div class="note-detail-val">${entry.extra}</div></div>`;
+  if(entry.approvalStatus) html += `<div style="text-align:right;margin-top:10px"><span style="font-size:12px;background:#f3e8ff;color:#7c3aed;padding:3px 12px;border-radius:20px;border:1px solid #d8b4fe">${entry.approvalStatus}</span></div>`;
+  document.getElementById('noteMoContent').innerHTML = html || '<div style="color:var(--muted);text-align:center;padding:30px">일정 없음</div>';
+  document.getElementById('noteMo').classList.add('open');
+}
+function closeNoteMo(){ document.getElementById('noteMo').classList.remove('open'); }
+document.addEventListener('click',e=>{ if(e.target.id==='noteMo') closeNoteMo(); });
+
+function getSt(id){ const v=((att[curDate]||{})[id]); return v ? (typeof v==='object' ? v.status : v) : 'none'; }
+function getTime(id){ const v=((att[curDate]||{})[id]); return v && typeof v==='object' ? v.time : ''; }
+
+function setSt(id, status){
+  if(!att[curDate]) att[curDate]={};
+  const cur = getSt(id);
+  cur===status ? delete att[curDate][id] : (att[curDate][id]={status, time:''});
+  save();
+  const card=document.getElementById('c'+id);
+  if(card){
+    const ns=getSt(id);
+    card.dataset.s=ns||'none';
+    card.querySelectorAll('.ab').forEach(b=>b.classList.remove('on'));
+    if(ns && ns!=='none'){
+      const cls={present:'pb',late:'lb',absent:'xb'}[ns];
+      card.querySelector('.'+cls)?.classList.add('on');
+    }
+  }
+  stats();
+}
+
+function setAll(s){
+  if(!att[curDate]) att[curDate]={};
+  students.forEach(st=>{att[curDate][st.id]=s;});
+  save(); render(); stats();
+  showToast('✅ 전체 출석으로 설정했습니다!');
+}
+
+function stats(){
+  const n=students.length;
+  const p=students.filter(s=>getSt(s.id)==='present').length;
+  const l=students.filter(s=>getSt(s.id)==='late').length;
+  const a=students.filter(s=>getSt(s.id)==='absent').length;
+  const c=p+l+a;
+  document.getElementById('sT').textContent=n;
+  document.getElementById('sP').textContent=p;
+  document.getElementById('sL').textContent=l;
+  document.getElementById('sA').textContent=a;
+  document.getElementById('sN').textContent=n-c;
+  const pct=x=>n>0?Math.round(x/n*100)+'%':'0%';
+  document.getElementById('sPp').textContent=pct(p);
+  document.getElementById('sLp').textContent=pct(l);
+  document.getElementById('sAp').textContent=pct(a);
+  document.getElementById('pLabel').textContent=`${c} / ${n} 확인됨`;
+  document.getElementById('pgP').style.width=pct(p);
+  document.getElementById('pgL').style.width=pct(l);
+  document.getElementById('pgA').style.width=pct(a);
+}
+
+function changeDate(){
+  curDate=document.getElementById('dInput').value;
+  if(!att[curDate]) att[curDate]={};
+  const dow = new Date(curDate+'T00:00:00').getDay();
+  if(dow === 0) showToast('⚠️ 일요일은 자율등원일입니다.');
+  render(); stats();
+}
+
+function openHist(){
+  const c=document.getElementById('histC');
+  const dates=Object.keys(att).sort().reverse();
+  if(!dates.length){
+    c.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">📭 기록 없음</div>';
+  }else{
+    c.innerHTML=dates.map(d=>{
+      const day=att[d];
+      const getS=id=>{const v=day[id]; return v?(typeof v==='object'?v.status:v):'none';};
+      const p=students.filter(s=>getS(s.id)==='present');
+      const l=students.filter(s=>getS(s.id)==='late');
+      const a=students.filter(s=>getS(s.id)==='absent');
+      return`<div style="margin-bottom:22px">
+        <div style="font-weight:700;margin-bottom:10px;color:var(--accent);font-family:'Space Mono',monospace">${d}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          <span class="badge bp">출석 ${p.length}</span>
+          <span class="badge bl">지각 ${l.length}</span>
+          <span class="badge ba">결석 ${a.length}</span>
+        </div>
+        ${l.length?`<div style="font-size:13px;color:var(--late);margin-bottom:4px">⚠️ 무단지각: ${l.map(s=>s.name).join(', ')}</div>`:''}
+        ${a.length?`<div style="font-size:13px;color:var(--absent)">❌ 무단결석: ${a.map(s=>s.name).join(', ')}</div>`:''}
+        <div style="height:1px;background:var(--border);margin-top:14px"></div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('histMo').classList.add('open');
+}
+function closeMo(){ document.getElementById('histMo').classList.remove('open'); }
+document.addEventListener('click',e=>{ if(e.target.id==='histMo') closeMo(); });
+
+function exportCSV(){
+  const dates=Object.keys(att).sort();
+  const rows=[['번호','이름',...dates,'오늘 비고']];
+  students.forEach(s=>{
+    const si = getScheduleForDate(s.name, curDate);
+    const note = si && si.dayText ? si.dayText : '';
+    rows.push([s.num,s.name,...dates.map(d=>{
+      const v=(att[d]||{})[s.id];
+      const st=v?(typeof v==='object'?v.status:v):'';
+      return ({present:'출석',late:'무단지각',absent:'무단결석'})[st]||'';
+    }), note]);
+  });
+  const blob=new Blob(['\uFEFF'+rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`8층출결기록_${today()}.csv`; a.click();
+  showToast('💾 CSV 저장 완료!');
+}
+
+function exportSummary(){
+  const l=students.filter(s=>getSt(s.id)==='late');
+  const a=students.filter(s=>getSt(s.id)==='absent');
+  const p=students.filter(s=>getSt(s.id)==='present');
+  const lApproved = l.filter(s=>{ const si=getScheduleForDate(s.name,curDate); return si&&si.dayText&&si.dayText.includes('지각'); });
+  const aApproved = a.filter(s=>{ const si=getScheduleForDate(s.name,curDate); return si&&si.dayText&&si.dayText.includes('결석'); });
+  const lUnauth = l.filter(s=>!lApproved.includes(s));
+  const aUnauth = a.filter(s=>!aApproved.includes(s));
+  let text = `[8층 출결 요약] ${curDate}\n전체: ${students.length}명\n✅ 출석: ${p.length}명\n`;
+  text += `⚠️ 지각: ${l.length}명`;
+  if(lApproved.length) text += ` (승인: ${lApproved.map(s=>s.name).join(', ')})`;
+  if(lUnauth.length) text += ` (무단: ${lUnauth.map(s=>s.name).join(', ')})`;
+  text += `\n❌ 결석: ${a.length}명`;
+  if(aApproved.length) text += ` (승인: ${aApproved.map(s=>s.name).join(', ')})`;
+  if(aUnauth.length) text += ` (무단: ${aUnauth.map(s=>s.name).join(', ')})`;
+  navigator.clipboard.writeText(text).then(()=>showToast('📋 요약 복사 완료!')).catch(()=>showToast('⚠️ 복사 실패'));
+}
+
+function handleXlsx(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const data = new Uint8Array(e.target.result);
+    const wb = XLSX.read(data, {type:'array', cellDates:true});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, {header:1});
+    const header = rows[0] || [];
+    const timeIdx = header.findIndex(h => String(h).includes('시간'));
+    const nameIdx = header.findIndex(h => String(h).includes('이름'));
+    const dirIdx  = header.findIndex(h => String(h).includes('방향'));
+    if(timeIdx === -1 || nameIdx === -1){ showToast('❌ 파일 형식 오류 (시간/이름 컬럼 없음)'); input.value=''; return; }
+    const enterRecords = [];
+    for(let i=1;i<rows.length;i++){
+      const row = rows[i];
+      if(!row || !row[nameIdx]) continue;
+      const name = String(row[nameIdx]).trim();
+      if(!name) continue;
+      const dir = dirIdx >= 0 ? String(row[dirIdx]||'').toUpperCase() : '';
+      if(dir && dir !== 'ENTER') continue;
+      let timeVal = row[timeIdx]; let hour=25,min=0,isPM=false;
+      if(timeVal instanceof Date){ hour=timeVal.getHours(); min=timeVal.getMinutes(); }
+      else if(typeof timeVal==='string'){
+        isPM=timeVal.includes('오후')||timeVal.toLowerCase().includes('pm');
+        const cleaned=timeVal.replace(/오전|오후|AM|PM/gi,'').trim();
+        const m=cleaned.match(/(\d{1,2}):(\d{2})/);
+        if(m){ hour=parseInt(m[1]); min=parseInt(m[2]); if(isPM&&hour!==12)hour+=12; if(!isPM&&hour===12)hour=0; }
+      } else if(typeof timeVal==='number'){
+        const ts=Math.round(timeVal*86400); hour=Math.floor(ts/3600)%24; min=Math.floor((ts%3600)/60);
+      }
+      const timeStr=String(hour).padStart(2,'0')+':'+String(min).padStart(2,'0');
+      enterRecords.push({name,hour,min,timeStr});
+    }
+    const firstEnter={};
+    enterRecords.forEach(r=>{ if(!firstEnter[r.name]||r.hour*60+r.min<firstEnter[r.name].hour*60+firstEnter[r.name].min) firstEnter[r.name]=r; });
+    const before8=[],after8=[];
+    Object.values(firstEnter).forEach(r=>{ const totalMin=r.hour*60+r.min; (totalMin<=8*60 ? before8 : after8).push({name:r.name,time:r.timeStr}); });
+    xlsxParsed={before8,after8};
+    const normName=n=>n.replace(/[0-9]/g,'').trim();
+    const matched_b=before8.filter(r=>students.some(s=>s.name===r.name||normName(s.name)===normName(r.name)));
+    const matched_a=after8.filter(r=>students.some(s=>s.name===r.name||normName(s.name)===normName(r.name)));
+    const unmatched=[...before8,...after8].filter(r=>!students.some(s=>s.name===r.name||normName(s.name)===normName(r.name)));
+    const approvedLate = students.filter(s=>{ const si=getScheduleForDate(s.name,curDate); return si&&si.dayText&&si.dayText.includes('지각'); }).map(s=>s.name);
+    let html='';
+    if(matched_b.length) html+=`<div style="margin-bottom:16px"><div style="font-weight:700;color:var(--present);margin-bottom:8px">✅ 8시 이전 입실 (출석) — ${matched_b.length}명</div><div style="display:flex;flex-wrap:wrap;gap:8px">${matched_b.map(r=>`<span style="background:#e8f5ee;color:var(--present);border:1px solid #b8dfc9;border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span></span>`).join('')}</div></div>`;
+    if(matched_a.length){ html+=`<div style="margin-bottom:16px"><div style="font-weight:700;color:var(--late);margin-bottom:8px">⚠️ 8시 이후 입실 (지각) — ${matched_a.length}명</div><div style="display:flex;flex-wrap:wrap;gap:8px">${matched_a.map(r=>{ const isApproved=approvedLate.includes(r.name); return `<span style="background:${isApproved?'#fffbeb':'#fff3e0'};color:${isApproved?'#92400e':'var(--late)'};border:1px solid ${isApproved?'#fcd34d':'#f5d5a0'};border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span>${isApproved?' 📅':''}</span>`; }).join('')}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">📅 = 정기일정에 승인된 지각</div></div>`; }
+    if(unmatched.length) html+=`<div style="margin-bottom:16px"><div style="font-weight:700;color:var(--muted);margin-bottom:8px">❓ 명단 외 — ${unmatched.length}명</div><div style="display:flex;flex-wrap:wrap;gap:8px">${unmatched.map(r=>`<span style="background:#f0f4f8;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span></span>`).join('')}</div></div>`;
+    if(!matched_b.length&&!matched_a.length) html='<div style="text-align:center;padding:30px;color:var(--muted)">📭 매칭된 학생이 없습니다</div>';
+    document.getElementById('xlsxResult').innerHTML=html;
+    document.getElementById('xlsxMo').classList.add('open');
+    input.value='';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function applyXlsx(){
+  if(!xlsxParsed.before8) return;
+  const d=new Date(curDate+'T00:00:00');
+  if(d.getDay()===0){showToast('일요일은 자율등원일입니다.');return;}
+  att[curDate]={};
+  const normName=n=>n.replace(/[0-9]/g,'').trim();
+  let cntP=0,cntL=0;
+  xlsxParsed.before8.forEach(r=>{ const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name)); if(s){att[curDate][s.id]={status:'present',time:r.time};cntP++;} });
+  xlsxParsed.after8.forEach(r=>{ const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name)); if(s){att[curDate][s.id]={status:'late',time:r.time};cntL++;} });
+  students.forEach(s=>{ if(!att[curDate][s.id]){att[curDate][s.id]={status:'late',time:''};cntL++;} });
+  save(); render(); stats(); closeXlsxMo();
+  showToast(`✅ 출석 ${cntP}명 / ⚠️ 무단지각 ${cntL}명 처리 완료!`);
+}
+function closeXlsxMo(){ document.getElementById('xlsxMo').classList.remove('open'); }
+
+async function saveToSheet(){
+  const _d=new Date(curDate+'T00:00:00');
+  if(_d.getDay()===0){showToast('일요일은 저장하지 않습니다.');return;}
+  const records=students.map(s=>{ const si=getScheduleForDate(s.name,curDate); return {name:s.name,status:getSt(s.id),time:getTime(s.id),schedNote:si?si.dayText:''}; });
+  const btn=document.getElementById('sheetBtn'); btn.disabled=true; btn.textContent='☁️ 저장 중...';
+  try{
+    const saveUrl = 'https://script.google.com/macros/s/AKfycbycsVj7HbpM-5Zhc6OhJAod-Co_0tIPld7wukcuc1NvgPsWs203pXrud2zImpRW2uXU/exec';
+    const res=await fetch(saveUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({date:curDate,floor:'8f',records})});
+    const json=await res.json();
+    if(json.status==='ok') showToast('☁️ 구글 시트에 저장됐습니다!');
+    else throw new Error();
+  }catch(e){ showToast('❌ 시트 저장 실패'); }
+  finally{ btn.disabled=false; btn.textContent='☁️ 시트 저장'; }
+}
+
+function save(){ localStorage.setItem(SK, JSON.stringify(att)); }
+function show(id){ document.getElementById(id).style.display=''; }
+function hide(id){ document.getElementById(id).style.display='none'; }
+let tt;
+function showToast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('show'),3500); }
+
+loadStudents();
+</script>
+</body>
+</html>

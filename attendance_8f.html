@@ -163,7 +163,7 @@
         </div>
         <button class="btn btn-green" onclick="setAll('present')">✅ 전체 출석</button>
         <label class="btn btn-excel" style="cursor:pointer">📂 바이오스타 CSV 업로드<input type="file" id="xlsxInput" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleXlsx(this)"></label>
-        <label class="btn btn-sched" style="cursor:pointer" title="정기일정 엑셀 파일 업로드">📅 정기일정 업로드<input type="file" id="schedInput" accept=".xlsx,.xls" style="display:none" onchange="handleScheduleXlsx(this)"></label>
+        <label class="btn btn-sched" style="cursor:pointer" title="정기일정 파일 업로드 (CSV/엑셀)">📅 정기일정 업로드<input type="file" id="schedInput" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleScheduleXlsx(this)"></label>
         <button class="btn btn-dim" onclick="reload()">🔄 명단 새로고침</button>
       </div>
       <button class="btn btn-orange" onclick="openHist()">📜 출결 기록</button>
@@ -269,13 +269,20 @@ function today(){ return new Date().toISOString().slice(0,10); }
 function handleScheduleXlsx(input){
   const file = input.files[0];
   if(!file) return;
+  const isCsv = file.name.toLowerCase().endsWith('.csv');
   const reader = new FileReader();
   reader.onload = function(e){
     try{
-      const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, {type:'array'});
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      let rows = [];
+      if(isCsv){
+        const lines = e.target.result.split('\n');
+        rows = lines.map(l => parseCSVLine(l));
+      } else {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, {type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      }
       const header = (rows[0]||[]).map(h=>String(h).trim());
       const nameIdx   = header.findIndex(h=>h.includes('이름'));
       const monIdx    = header.findIndex(h=>h.includes('월'));
@@ -302,14 +309,15 @@ function handleScheduleXlsx(input){
       scheduleData = parsed;
       localStorage.setItem(SK_SCHED, JSON.stringify(scheduleData));
       const cnt = Object.keys(scheduleData).length;
-      showSchedBanner(`정기일정 ${cnt}명 적용됨 — 카드 하단 비고란에서 확인하세요.`);
+      showSchedBanner(`정기일정 ${cnt}명 적용됨`);
       document.getElementById('schedIndicator').classList.add('active');
       render();
       showToast(`📅 정기일정 ${cnt}명 로드 완료!`);
     } catch(err){ showToast('❌ 파일 파싱 오류: '+err.message); }
     input.value='';
   };
-  reader.readAsArrayBuffer(file);
+  if(isCsv) reader.readAsText(file, 'UTF-8');
+  else reader.readAsArrayBuffer(file);
 }
 
 function clearSchedule(){
@@ -756,8 +764,32 @@ function parseCSVLine(line){
   return result;
 }
 
-// 입실 기록 처리 공통 함수
+// 정기일정에서 등원 예정 시간(분) 추출
+function getScheduledArrivalMin(dayText){
+  if(!dayText || dayText.includes('결석')) return null;
+  const patterns = [
+    /지각\s*(\d{1,2})시\s*(\d{1,2})분/,
+    /지각\s*(\d{1,2}):(\d{2})/,
+    /지각\s*(\d{1,2})시/,
+    /(\d{1,2})시\s*등원/,
+    /등원\s*(\d{1,2})시/,
+    /(\d{1,2})시\s*지각/,
+  ];
+  for(const p of patterns){
+    const m = dayText.match(p);
+    if(m){
+      const h = parseInt(m[1]);
+      const min = m[2] ? parseInt(m[2]) : 0;
+      return h*60 + min;
+    }
+  }
+  return null;
+}
+
+// 입실 기록 처리 — 정기일정 기반 출결 판단
 function processEnterRecords(enterRecords){
+  const normName = n => n.replace(/\d+$/, '').replace(/\s/g,'').trim();
+
   // 첫 입실만
   const firstEnter = {};
   enterRecords.forEach(r=>{
@@ -766,40 +798,134 @@ function processEnterRecords(enterRecords){
     }
   });
 
-  const before8=[], after8=[];
+  const present=[], late=[], absentSched=[], unmatched=[];
+  const hasSchedule = Object.keys(scheduleData).length > 0;
+
   Object.values(firstEnter).forEach(r=>{
-    (r.hour*60+r.min <= 8*60 ? before8 : after8).push({name:r.name, time:r.timeStr});
+    const student = students.find(s=>s.name===r.name) ||
+                    students.find(s=>normName(s.name)===normName(r.name));
+    if(!student){ unmatched.push(r); return; }
+
+    const si = getScheduleForDate(student.name, curDate);
+    const dayText = si ? si.dayText : '';
+    const actualMin = r.hour*60 + r.min;
+
+    if(!hasSchedule){
+      // 정기일정 없으면 출석 처리
+      present.push({name:r.name, time:r.timeStr, note:'출석'});
+      return;
+    }
+
+    // ① 결석 예정인데 왔으면 → 출석
+    if(dayText.includes('결석')){
+      present.push({name:r.name, time:r.timeStr, note:'결석예정→출석'});
+      return;
+    }
+
+    // ② 정기일정에 "지각" 명시 → 승인된 지각 = 출석 처리
+    if(dayText.includes('지각')){
+      present.push({name:r.name, time:r.timeStr, note:'승인지각'});
+      return;
+    }
+
+    // ③ 정기일정에 등원 시간 있음 → 시간 비교
+    const schedMin = getScheduledArrivalMin(dayText);
+    if(schedMin !== null){
+      if(actualMin <= schedMin + 30){
+        present.push({name:r.name, time:r.timeStr, note:'출석'});
+      } else {
+        const schedLabel = Math.floor(schedMin/60)+'시'+(schedMin%60?(schedMin%60)+'분':'');
+        late.push({name:r.name, time:r.timeStr, schedTime:schedLabel});
+      }
+    } else {
+      // 정기일정 있지만 시간 파싱 안 됨 → 출석
+      present.push({name:r.name, time:r.timeStr, note:'출석'});
+    }
   });
-  xlsxParsed = {before8, after8};
 
-  const normName = n => n.replace(/[0-9]/g,'').trim();
-  const matched_b  = before8.filter(r=>students.some(s=>s.name===r.name||normName(s.name)===normName(r.name)));
-  const matched_a  = after8.filter(r=>students.some(s=>s.name===r.name||normName(s.name)===normName(r.name)));
-  const unmatched  = [...before8,...after8].filter(r=>!students.some(s=>s.name===r.name||normName(s.name)===normName(r.name)));
-  const approvedLate = students.filter(s=>{ const si=getScheduleForDate(s.name,curDate); return si&&si.dayText&&si.dayText.includes('지각'); }).map(s=>s.name);
+  // 입실 기록 없는 학생 처리
+  students.forEach(s=>{
+    const hasRecord = Object.values(firstEnter).some(r=>
+      r.name===s.name || normName(r.name)===normName(s.name));
+    if(!hasRecord){
+      const si = getScheduleForDate(s.name, curDate);
+      const dayText = si ? si.dayText : '';
+      if(dayText.includes('결석')){
+        // 결석 예정 → 결석(승인)
+        absentSched.push({name:s.name, note:'결석(승인)'});
+      }
+      // 그 외 입실 기록 없는 학생은 미확인으로 둠 (강제 결석 처리 안 함)
+    }
+  });
 
-  let html='';
-  if(matched_b.length) html+=`<div style="margin-bottom:16px"><div style="font-weight:700;color:var(--present);margin-bottom:8px">✅ 8시 이전 입실 (출석) — ${matched_b.length}명</div><div style="display:flex;flex-wrap:wrap;gap:8px">${matched_b.map(r=>`<span style="background:#e8f5ee;color:var(--present);border:1px solid #b8dfc9;border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span></span>`).join('')}</div></div>`;
-  if(matched_a.length) html+=`<div style="margin-bottom:16px"><div style="font-weight:700;color:var(--late);margin-bottom:8px">⚠️ 8시 이후 입실 (지각) — ${matched_a.length}명</div><div style="display:flex;flex-wrap:wrap;gap:8px">${matched_a.map(r=>{ const isApproved=approvedLate.includes(r.name); return `<span style="background:${isApproved?'#fffbeb':'#fff3e0'};color:${isApproved?'#92400e':'var(--late)'};border:1px solid ${isApproved?'#fcd34d':'#f5d5a0'};border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span>${isApproved?' 📅':''}</span>`; }).join('')}</div><div style="font-size:11px;color:var(--muted);margin-top:6px">📅 = 정기일정에 승인된 지각</div></div>`;
-  if(unmatched.length) html+=`<div style="margin-bottom:16px"><div style="font-weight:700;color:var(--muted);margin-bottom:8px">❓ 명단 외 — ${unmatched.length}명</div><div style="display:flex;flex-wrap:wrap;gap:8px">${unmatched.map(r=>`<span style="background:#f0f4f8;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span></span>`).join('')}</div></div>`;
-  if(!matched_b.length&&!matched_a.length) html='<div style="text-align:center;padding:30px;color:var(--muted)">📭 매칭된 학생이 없습니다</div>';
+  xlsxParsed = {present, late, absentSched, unmatched,
+    before8: present, after8: late}; // 하위호환
+
+  // 결과 HTML
+  let html = '';
+  if(!hasSchedule){
+    html += `<div style="background:#fff8e6;border:1px solid #f0c040;border-radius:10px;padding:10px 14px;font-size:13px;color:#7a5c00;margin-bottom:16px">⚠️ 정기일정이 없어 전체 출석 처리됩니다. 정기일정을 먼저 업로드하면 정확한 판단이 가능합니다.</div>`;
+  }
+  if(present.length) html+=`<div style="margin-bottom:16px">
+    <div style="font-weight:700;color:var(--present);margin-bottom:8px">✅ 출석 — ${present.length}명</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">${present.map(r=>`
+      <span style="background:#e8f5ee;color:var(--present);border:1px solid #b8dfc9;border-radius:20px;padding:4px 12px;font-size:13px">
+        ${r.name} <span style="opacity:.7">${r.time}</span>${r.note==='승인지각'?' 📅':''}
+      </span>`).join('')}
+    </div>
+  </div>`;
+  if(late.length) html+=`<div style="margin-bottom:16px">
+    <div style="font-weight:700;color:var(--late);margin-bottom:8px">⚠️ 무단지각 — ${late.length}명</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">${late.map(r=>`
+      <span style="background:#fff3e0;color:var(--late);border:1px solid #f5d5a0;border-radius:20px;padding:4px 12px;font-size:13px">
+        ${r.name} <span style="opacity:.7">${r.time}</span> <span style="font-size:10px;opacity:.6">(예정:${r.schedTime})</span>
+      </span>`).join('')}
+    </div>
+  </div>`;
+  if(absentSched.length) html+=`<div style="margin-bottom:16px">
+    <div style="font-weight:700;color:var(--absent);margin-bottom:8px">❌ 결석(승인) — ${absentSched.length}명</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">${absentSched.map(r=>`
+      <span style="background:#fde8e8;color:var(--absent);border:1px solid #f5b8b8;border-radius:20px;padding:4px 12px;font-size:13px">${r.name}</span>`).join('')}
+    </div>
+  </div>`;
+  if(unmatched.length) html+=`<div style="margin-bottom:16px">
+    <div style="font-weight:700;color:var(--muted);margin-bottom:8px">❓ 명단 외 — ${unmatched.length}명</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px">${unmatched.map(r=>`
+      <span style="background:#f0f4f8;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:13px">
+        ${r.name} <span style="opacity:.7">${r.time}</span>
+      </span>`).join('')}
+    </div>
+  </div>`;
+  if(!present.length&&!late.length) html='<div style="text-align:center;padding:30px;color:var(--muted)">📭 매칭된 학생이 없습니다</div>';
 
   document.getElementById('xlsxResult').innerHTML=html;
   document.getElementById('xlsxMo').classList.add('open');
 }
 
 function applyXlsx(){
-  if(!xlsxParsed.before8) return;
+  if(!xlsxParsed.present && !xlsxParsed.before8) return;
   const d=new Date(curDate+'T00:00:00');
   if(d.getDay()===0){showToast('일요일은 자율등원일입니다.');return;}
   att[curDate]={};
-  const normName=n=>n.replace(/[0-9]/g,'').trim();
-  let cntP=0,cntL=0;
-  xlsxParsed.before8.forEach(r=>{ const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name)); if(s){att[curDate][s.id]={status:'present',time:r.time};cntP++;} });
-  xlsxParsed.after8.forEach(r=>{ const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name)); if(s){att[curDate][s.id]={status:'late',time:r.time};cntL++;} });
-  students.forEach(s=>{ if(!att[curDate][s.id]){att[curDate][s.id]={status:'late',time:''};cntL++;} });
+  const normName=n=>n.replace(/\d+$/, '').replace(/\s/g,'').trim();
+  let cntP=0,cntL=0,cntA=0;
+
+  (xlsxParsed.present||[]).forEach(r=>{
+    const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name));
+    if(s){att[curDate][s.id]={status:'present',time:r.time};cntP++;}
+  });
+  (xlsxParsed.late||[]).forEach(r=>{
+    const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name));
+    if(s){att[curDate][s.id]={status:'late',time:r.time};cntL++;}
+  });
+  (xlsxParsed.absentSched||[]).forEach(r=>{
+    const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name));
+    if(s){att[curDate][s.id]={status:'absent',time:''};cntA++;}
+  });
+  // 나머지 미확인은 그대로 둠 (강제 지각 처리 안 함)
+
   save(); render(); stats(); closeXlsxMo();
-  showToast(`✅ 출석 ${cntP}명 / ⚠️ 무단지각 ${cntL}명 처리 완료!`);
+  showToast(`✅ 출석 ${cntP}명 / ⚠️ 무단지각 ${cntL}명 / ❌ 결석 ${cntA}명 처리 완료!`);
 }
 function closeXlsxMo(){ document.getElementById('xlsxMo').classList.remove('open'); }
 

@@ -681,16 +681,28 @@ function exportSummary(){
   const aUnauth  = students.filter(s=>getSt(s.id)==='absent');         // 무단결석
   const aApproved= students.filter(s=>getSt(s.id)==='absent_approved');// 사유결석
 
-  // 정기일정 결석(승인)
+  // 정기일정 결석(승인) — none 또는 absent_approved 상태이면서 정기일정에 결석인 학생
   const aSchedApproved = students.filter(s=>{
     const si = getScheduleForDate(s.name, curDate);
+    const st = getSt(s.id);
     return si && si.dayText && si.dayText.includes('결석') &&
-           getSt(s.id) !== 'present' && getSt(s.id) !== 'absent' && getSt(s.id) !== 'absent_approved';
+           (st === 'none' || st === 'absent_approved');
+  });
+  // aApproved에서 정기일정 결석 중복 제거
+  const aApprovedOnly = aApproved.filter(s=>{
+    const si = getScheduleForDate(s.name, curDate);
+    return !(si && si.dayText && si.dayText.includes('결석'));
   });
 
   const totalLate   = lUnauth.length + lApproved.length;
-  const totalAbsent = aUnauth.length + aApproved.length + aSchedApproved.length;
-  const unconfirmed = students.filter(s=>getSt(s.id)==='none');
+  const totalAbsent = aUnauth.length + aApprovedOnly.length + aSchedApproved.length;
+  // 미확인: none이면서 정기일정 결석이 아닌 학생
+  const unconfirmed = students.filter(s=>{
+    const st = getSt(s.id);
+    if(st !== 'none') return false;
+    const si = getScheduleForDate(s.name, curDate);
+    return !(si && si.dayText && si.dayText.includes('결석'));
+  });
 
   let text = `[8층 출결 요약] ${curDate}\n`;
   text += `전체: ${students.length}명\n`;
@@ -702,9 +714,9 @@ function exportSummary(){
   text += '\n';
 
   text += `❌ 결석: ${totalAbsent}명`;
-  if(aApproved.length)     text += ` (사유: ${aApproved.map(s=>s.name).join(', ')})`;
-  if(aSchedApproved.length)text += ` (정기: ${aSchedApproved.map(s=>s.name).join(', ')})`;
-  if(aUnauth.length)       text += ` (무단: ${aUnauth.map(s=>s.name).join(', ')})`;
+  if(aApprovedOnly.length)  text += ` (사유: ${aApprovedOnly.map(s=>s.name).join(', ')})`;
+  if(aSchedApproved.length) text += ` (정기: ${aSchedApproved.map(s=>s.name).join(', ')})`;
+  if(aUnauth.length)        text += ` (무단: ${aUnauth.map(s=>s.name).join(', ')})`;
   text += '\n';
 
   if(unconfirmed.length) text += `⬜ 미확인: ${unconfirmed.length}명 (${unconfirmed.map(s=>s.name).join(', ')})`;

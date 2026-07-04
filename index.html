@@ -894,7 +894,7 @@ function parseCSVLine(line){
 }
 
 function processEnterRecords(enterRecords){
-  const normName = n => n.replace(/\([^)]*\)/g,'').replace(/\d+$/,'').replace(/\s/g,'').trim();
+ const normName = n => n.replace(/\([^)]*\)/g,'').replace(/\s/g,'').trim();
 
   const firstEnter = {};
   enterRecords.forEach(r=>{
@@ -977,7 +977,7 @@ function applyXlsx(){
   const d=new Date(curDate+'T00:00:00');
   if(d.getDay()===0){showToast('일요일은 자율등원일입니다.');return;}
   att[curDate]={};
-  const normName=n=>n.replace(/\([^)]*\)/g,'').replace(/\d+$/,'').replace(/\s/g,'').trim();
+  const normName=n=>n.replace(/\([^)]*\)/g,'').replace(/\s/g,'').trim();
   let cntP=0,cntL=0,cntA=0;
 
   (xlsxParsed.present||[]).forEach(r=>{
@@ -1084,7 +1084,7 @@ function handleReasonCsv(input){
 
 function applyReason(){
   if(!Object.keys(reasonData).length){ showToast('사유제출 데이터 없음'); return; }
-  const normName = n => n.replace(/\([^)]*\)/g,'').replace(/\d+$/,'').replace(/\s/g,'').trim();
+  const normName = n => n.replace(/\([^)]*\)/g,'').replace(/\s/g,'').trim();
   let cntLate=0, cntAbs=0, cntEarly=0;
 
   Object.entries(reasonData).forEach(([name, v])=>{

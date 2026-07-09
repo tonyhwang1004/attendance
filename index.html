@@ -23,59 +23,42 @@
   .btn:active{transform:scale(.97)}
   .btn-primary{background:linear-gradient(135deg,var(--accent),#0d5bcc);color:#fff;box-shadow:0 3px 12px rgba(26,115,232,.3)}
   .btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(26,115,232,.4)}
-  .btn-green{background:#e8f5ee;color:var(--present);border:1px solid #b8dfc9}
-  .btn-green:hover{background:#d4eddf}
-  .btn-orange{background:#fff3e8;color:var(--accent2);border:1px solid #f5cfa0}
-  .btn-orange:hover{background:#ffe8d0}
-  .btn-blue{background:#e8f0fe;color:var(--accent);border:1px solid #b8d0f8}
-  .btn-blue:hover{background:#d4e4fc}
-  .btn-dim{background:#f0f4f8;color:var(--muted);border:1px solid var(--border)}
-  .btn-dim:hover{color:var(--text);border-color:var(--accent)}
-  .btn-sheet{background:#e6f4ea;color:#1e8e3e;border:1px solid #b8dfc9}
-  .btn-sheet:hover{background:#ceead6}
+  .btn-green{background:#e8f5ee;color:var(--present);border:1px solid #b8dfc9}.btn-green:hover{background:#d4eddf}
+  .btn-orange{background:#fff3e8;color:var(--accent2);border:1px solid #f5cfa0}.btn-orange:hover{background:#ffe8d0}
+  .btn-blue{background:#e8f0fe;color:var(--accent);border:1px solid #b8d0f8}.btn-blue:hover{background:#d4e4fc}
+  .btn-dim{background:#f0f4f8;color:var(--muted);border:1px solid var(--border)}.btn-dim:hover{color:var(--text);border-color:var(--accent)}
+  .btn-sheet{background:#e6f4ea;color:#1e8e3e;border:1px solid #b8dfc9}.btn-sheet:hover{background:#ceead6}
   .btn-sheet:disabled{background:#f0f4f8;color:#b0bec5;border-color:#dde3ea;cursor:not-allowed}
-  .btn-excel{background:#e8f0fe;color:#1a73e8;border:1px solid #b8d0f8;display:inline-flex;align-items:center;gap:6px}
-  .btn-excel:hover{background:#d4e4fc}
-  .btn-sched{background:#f3e8ff;color:#7c3aed;border:1px solid #d8b4fe;display:inline-flex;align-items:center;gap:6px}
-  .btn-sched:hover{background:#ede0ff}
+  .btn-excel{background:#e8f0fe;color:#1a73e8;border:1px solid #b8d0f8;display:inline-flex;align-items:center;gap:6px}.btn-excel:hover{background:#d4e4fc}
+  .btn-sched{background:#f3e8ff;color:#7c3aed;border:1px solid #d8b4fe;display:inline-flex;align-items:center;gap:6px}.btn-sched:hover{background:#ede0ff}
   .toolbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;box-shadow:0 2px 8px rgba(0,0,0,.06)}
   .tleft{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .dselector{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:7px 14px}
   .dselector input[type=date]{background:transparent;border:none;color:var(--text);font-size:14px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;outline:none;padding:0}
-  .dselector input[type=date]::-webkit-calendar-picker-indicator{filter:none;cursor:pointer}
   .sched-indicator{display:none;align-items:center;gap:6px;background:#f3e8ff;border:1px solid #d8b4fe;border-radius:8px;padding:5px 12px;font-size:12px;color:#7c3aed;font-weight:600}
   .sched-indicator.active{display:flex}
   .stats{padding:18px 32px;display:flex;gap:14px;flex-wrap:wrap}
   .sc{flex:1;min-width:120px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden;transition:transform .2s;box-shadow:0 2px 8px rgba(0,0,0,.06)}
   .sc:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.1)}
   .sc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
-  .sc.t::after{background:linear-gradient(90deg,var(--accent),#0d5bcc)}
-  .sc.p::after{background:var(--present)}
-  .sc.l::after{background:var(--late)}
-  .sc.a::after{background:var(--absent)}
-  .sc.n::after{background:#b0bec5}
+  .sc.t::after{background:linear-gradient(90deg,var(--accent),#0d5bcc)}.sc.p::after{background:var(--present)}.sc.l::after{background:var(--late)}.sc.a::after{background:var(--absent)}.sc.n::after{background:#b0bec5}
   .sl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:500}
   .sv{font-family:'Space Mono',monospace;font-size:30px;font-weight:700;line-height:1}
   .sc.t .sv{color:var(--accent)}.sc.p .sv{color:var(--present)}.sc.l .sv{color:var(--late)}.sc.a .sv{color:var(--absent)}.sc.n .sv{color:#90a4ae}
   .sp{font-size:11px;color:var(--muted);margin-top:4px;font-family:'Space Mono',monospace}
   .content{padding:0 32px 32px}
   .ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px}
-  .ct{font-size:15px;font-weight:600;color:var(--muted)}
-  .ct b{color:var(--text)}
+  .ct{font-size:15px;font-weight:600;color:var(--muted)}.ct b{color:var(--text)}
   .sb{position:relative;width:210px}
   .sb input{width:100%;background:#fff;border:1px solid var(--border);border-radius:9px;padding:8px 12px 8px 34px;color:var(--text);font-size:13px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-  .sb input:focus{border-color:var(--accent)}
-  .sb input::placeholder{color:#b0bec5}
+  .sb input:focus{border-color:var(--accent)}.sb input::placeholder{color:#b0bec5}
   .sb::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
   .card{background:#fff;border:1px solid var(--border);border-radius:13px;padding:12px 16px;transition:all .2s;position:relative;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.06)}
   .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;transition:background .2s}
-  .card[data-s=present]::before{background:var(--present)}
-  .card[data-s=late]::before{background:var(--late)}
-  .card[data-s=late_approved]::before{background:var(--late)}
-  .card[data-s=absent]::before{background:var(--absent)}
-  .card[data-s=absent_approved]::before{background:#f5a623}
-  .card[data-s=none]::before{background:#dde3ea}
+  .card[data-s=present]::before{background:var(--present)}.card[data-s=late]::before{background:var(--late)}
+  .card[data-s=late_approved]::before{background:var(--late)}.card[data-s=absent]::before{background:var(--absent)}
+  .card[data-s=absent_approved]::before{background:#f5a623}.card[data-s=none]::before{background:#dde3ea}
   .card:hover{border-color:#a8c4f0;box-shadow:0 6px 18px rgba(26,115,232,.12);transform:translateY(-1px)}
   .card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .snum{font-family:'Space Mono',monospace;font-size:10px;color:#90a4ae;margin-bottom:2px}
@@ -97,12 +80,12 @@
   .ntag.sched-out{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
   .ntag.sched-special{background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff}
   .ntag.sched-normal{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+  .ntag.extra-absent{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;font-weight:700}
+  .ntag.extra-late{background:#fff3e0;color:#b45309;border:1px solid #fcd34d;font-weight:700}
   .note-full{font-size:11px;color:var(--muted);line-height:1.5;cursor:pointer}
   .note-full:hover{color:var(--accent)}
-  .note-expand{font-size:11px;color:var(--accent);cursor:pointer;margin-top:2px;display:inline-block}
   .sched-banner{background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;padding:10px 32px;font-size:13px;display:none;align-items:center;gap:10px;flex-wrap:wrap}
-  .sched-banner.show{display:flex}
-  .sched-banner span{opacity:.85}
+  .sched-banner.show{display:flex}.sched-banner span{opacity:.85}
   .bbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:12px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;z-index:100;box-shadow:0 -4px 16px rgba(0,0,0,.08)}
   .pw{flex:1;min-width:180px;max-width:380px}
   .pl{font-size:11px;color:var(--muted);margin-bottom:5px;display:flex;justify-content:space-between}
@@ -125,7 +108,6 @@
   .note-detail-label{font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
   .note-detail-val{font-size:13px;color:var(--text);line-height:1.6}
   .dow-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;background:#e8f0fe;color:#1a73e8;margin-right:6px}
-  /* ── 연결 오류 안내 박스 ── */
   .err-box{background:#fff;border:1px solid #f5b8b8;border-radius:16px;padding:28px 32px;text-align:center;max-width:420px;box-shadow:0 4px 20px rgba(0,0,0,.08)}
   .err-box h3{font-size:17px;font-weight:700;color:var(--absent);margin-bottom:10px}
   .err-box p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px}
@@ -136,7 +118,6 @@
 <body>
 <div class="app">
   <div class="toast" id="toast"></div>
-
   <header>
     <div style="display:flex;align-items:center;gap:14px">
       <div class="logo">📋</div>
@@ -150,21 +131,14 @@
       <div class="clock" id="clock"></div>
     </div>
   </header>
-
-  <!-- 정기일정 로드 배너 -->
   <div class="sched-banner" id="schedBanner">
-    <span>📅</span>
-    <span id="schedBannerTxt">정기일정이 적용되었습니다.</span>
+    <span>📅</span><span id="schedBannerTxt">정기일정이 적용되었습니다.</span>
     <button class="btn btn-dim" style="font-size:11px;padding:4px 10px;margin-left:auto" onclick="clearSchedule()">🗑 일정 초기화</button>
   </div>
-
-  <!-- 로딩 -->
   <div class="center" id="scLoad">
     <div class="spinner"></div>
     <div style="color:var(--muted);font-size:14px" id="loadMsg">구글 시트 연결 중...</div>
   </div>
-
-  <!-- 메인 -->
   <div id="scMain" style="display:none">
     <div class="toolbar">
       <div class="tleft">
@@ -175,19 +149,14 @@
         <button class="btn btn-green" onclick="setAll('present')">✅ 전체 출석</button>
         <label class="btn btn-excel" style="cursor:pointer">📂 출입기록 업로드<input type="file" id="xlsxInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleXlsx(this)"></label>
         <label class="btn btn-orange" style="cursor:pointer">📋 사유제출 업로드<input type="file" id="reasonInput" accept=".csv" style="display:none" onchange="handleReasonCsv(this)"></label>
-        <label class="btn btn-sched" style="cursor:pointer" title="정기일정 엑셀 파일 업로드">📅 정기일정 업로드<input type="file" id="schedInput" accept=".xlsx,.xls" style="display:none" onchange="handleScheduleXlsx(this)"></label>
+        <label class="btn btn-sched" style="cursor:pointer">📅 정기일정 업로드<input type="file" id="schedInput" accept=".xlsx,.xls" style="display:none" onchange="handleScheduleXlsx(this)"></label>
         <button class="btn btn-dim" onclick="reload()">🔄 명단 새로고침</button>
       </div>
       <button class="btn btn-orange" onclick="openHist()">📜 출결 기록</button>
     </div>
-
-    <!-- 출입기록 분석 결과 모달 -->
     <div class="mo" id="xlsxMo">
       <div class="md" style="max-width:720px">
-        <div class="mh">
-          <div class="mt">📂 출입기록 분석 결과</div>
-          <button class="mc" onclick="closeXlsxMo()">✕</button>
-        </div>
+        <div class="mh"><div class="mt">📂 출입기록 분석 결과</div><button class="mc" onclick="closeXlsxMo()">✕</button></div>
         <div id="xlsxResult"></div>
         <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end">
           <button class="btn btn-dim" onclick="closeXlsxMo()">닫기</button>
@@ -195,14 +164,9 @@
         </div>
       </div>
     </div>
-
-    <!-- 사유제출 분석 결과 모달 -->
     <div class="mo" id="reasonMo">
       <div class="md" style="max-width:720px">
-        <div class="mh">
-          <div class="mt">📋 사유제출 분석 결과</div>
-          <button class="mc" onclick="closeReasonMo()">✕</button>
-        </div>
+        <div class="mh"><div class="mt">📋 사유제출 분석 결과</div><button class="mc" onclick="closeReasonMo()">✕</button></div>
         <div id="reasonResult"></div>
         <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end">
           <button class="btn btn-dim" onclick="closeReasonMo()">닫기</button>
@@ -210,26 +174,19 @@
         </div>
       </div>
     </div>
-
-    <!-- 비고 상세 모달 -->
     <div class="mo" id="noteMo">
       <div class="md" style="max-width:520px">
-        <div class="mh">
-          <div class="mt" id="noteMoTitle">📋 정기일정 상세</div>
-          <button class="mc" onclick="closeNoteMo()">✕</button>
-        </div>
+        <div class="mh"><div class="mt" id="noteMoTitle">📋 정기일정 상세</div><button class="mc" onclick="closeNoteMo()">✕</button></div>
         <div id="noteMoContent"></div>
       </div>
     </div>
-
     <div class="stats">
       <div class="sc t"><div class="sl">전체</div><div class="sv" id="sT">0</div></div>
       <div class="sc p"><div class="sl">✅ 출석</div><div class="sv" id="sP">0</div><div class="sp" id="sPp"></div></div>
-      <div class="sc l"><div class="sl">⚠️ 무단지각</div><div class="sv" id="sL">0</div><div class="sp" id="sLp"></div></div>
-      <div class="sc a"><div class="sl">❌ 무단결석</div><div class="sv" id="sA">0</div><div class="sp" id="sAp"></div></div>
+      <div class="sc l"><div class="sl">⚠️ 지각</div><div class="sv" id="sL">0</div><div class="sp" id="sLp"></div></div>
+      <div class="sc a"><div class="sl">❌ 결석</div><div class="sv" id="sA">0</div><div class="sp" id="sAp"></div></div>
       <div class="sc n"><div class="sl">⬜ 미확인</div><div class="sv" id="sN">0</div></div>
     </div>
-
     <div class="content">
       <div class="ch">
         <div class="ct">학생 목록 &nbsp;<b id="cnt">0명</b></div>
@@ -239,13 +196,13 @@
             <option value="hasnote">📅 일정있는 학생</option>
             <option value="late_sched">⚠️ 승인된 지각</option>
             <option value="absent_sched">❌ 승인된 결석</option>
+            <option value="extra_today">📌 기타일정 해당</option>
           </select>
           <div class="sb"><input type="text" id="srch" placeholder="이름 검색..." oninput="render()"></div>
         </div>
       </div>
       <div class="grid" id="grid"></div>
     </div>
-
     <div class="bbar">
       <div class="pw">
         <div class="pl"><span>출결 현황</span><span id="pLabel">0 / 0</span></div>
@@ -256,50 +213,162 @@
         </div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-green" onclick="applyExtraToday()" id="extraBtn" style="display:none">📌 기타일정 자동반영</button>
         <button class="btn btn-sheet" onclick="saveToSheet()" id="sheetBtn">☁️ 시트 저장</button>
         <button class="btn btn-blue" onclick="exportCSV()">💾 CSV 저장</button>
         <button class="btn btn-orange" onclick="exportSummary()">📋 요약 복사</button>
       </div>
     </div>
-
-    <!-- 기록 모달 -->
     <div class="mo" id="histMo">
       <div class="md">
-        <div class="mh">
-          <div class="mt">📜 날짜별 출결 기록</div>
-          <button class="mc" onclick="closeMo()">✕</button>
-        </div>
+        <div class="mh"><div class="mt">📜 날짜별 출결 기록</div><button class="mc" onclick="closeMo()">✕</button></div>
         <div id="histC"></div>
       </div>
     </div>
     <div style="height:76px"></div>
   </div>
 </div>
-
 <script>
-// ════════════════════════════════════════
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbxISj3ZgVnveVJvD87dd5pzADMbAd546I_MtPmkFS4xqdr6Z8dSXGWUslJ-jc-ONfJ_WA/exec';
 const SK = 'att_7f';
 const SK_SCHED = 'att_7f_sched';
-// ════════════════════════════════════════
 
 let students=[], att={}, curDate=today(), xlsxParsed={};
 let scheduleData = {};
 
 function today(){ return new Date().toISOString().slice(0,10); }
 
-// 시계
 (function tick(){
-  const n=new Date();
-  const el=document.getElementById('clock');
+  const n=new Date(), el=document.getElementById('clock');
   if(el) el.textContent=n.toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'})+' '+n.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   setTimeout(tick,1000);
 })();
 
-// ── 정기일정 파싱 ────────────────────────────────────
+// ══════════════════════════════════════════════════
+// ✅ 기타란 날짜 파싱 — 오늘 날짜에 해당하는 일정 추출
+// ══════════════════════════════════════════════════
+function parseExtraForDate(extraText, dateStr) {
+  if (!extraText || !dateStr) return null;
+  try {
+    const parts = dateStr.split('-');
+    const month = parseInt(parts[1]);
+    const day   = parseInt(parts[2]);
+
+    // 1. 같은 월 범위: 7월20-7월31일
+    const sameMonthRange = new RegExp(month + '월\\s*(\\d{1,2})\\s*[-~]\\s*' + month + '월\\s*(\\d{1,2})일?', 'g');
+    for (const m of extraText.matchAll(sameMonthRange)) {
+      const s = parseInt(m[1]), e = parseInt(m[2]);
+      if (s <= day && day <= e) {
+        const after = extraText.slice(m.index + m[0].length, m.index + m[0].length + 30);
+        const before = extraText.slice(Math.max(0, m.index - 10), m.index);
+        return classifyExtraStatus(before + ' ' + after, extraText);
+      }
+    }
+
+    // 2. 날짜 범위: 7/7-10, 7/7~10, 7월7~10일, 7월25일부터29일
+    const rangePats = [
+      new RegExp(month + '[/월\\.\\s]\\s*(\\d{1,2})일?부터?\\s*(\\d{1,2})일?', 'g'),
+      new RegExp(month + '[/월\\.]\\s*(\\d{1,2})\\s*[-~]\\s*(\\d{1,2})[일]?', 'g'),
+      new RegExp(month + '월\\s*(\\d{1,2})일?\\s*[-~]\\s*(\\d{1,2})일?', 'g'),
+    ];
+    for (const pat of rangePats) {
+      for (const m of extraText.matchAll(pat)) {
+        const s = parseInt(m[1]), e = parseInt(m[2]);
+        if (s <= day && day <= e) {
+          const after = extraText.slice(m.index + m[0].length, m.index + m[0].length + 30);
+          const before = extraText.slice(Math.max(0, m.index - 10), m.index);
+          return classifyExtraStatus(before + ' ' + after, extraText);
+        }
+      }
+    }
+
+    // 3. 콤마/공백 구분 날짜: 7/8,10,13 / 7월 8,9,10 / 7/11 7/17 7/25
+    const commaPats = [
+      new RegExp(month + '[/월\\.]\\s*(\\d{1,2}(?:\\s*[,、]\\s*\\d{1,2})+)', 'g'),
+      new RegExp(month + '월\\s*(\\d{1,2}(?:\\s*[,、]\\s*\\d{1,2})+)', 'g'),
+    ];
+    for (const pat of commaPats) {
+      for (const m of extraText.matchAll(pat)) {
+        const nums = m[1].match(/\d+/g).map(Number);
+        if (nums.includes(day)) {
+          const after = extraText.slice(m.index + m[0].length, m.index + m[0].length + 30);
+          const before = extraText.slice(Math.max(0, m.index - 10), m.index);
+          return classifyExtraStatus(before + ' ' + after, extraText);
+        }
+      }
+    }
+
+    // 공백 구분: 7/11 7/17 7/25 결석
+    const spacePat = new RegExp('((?:' + month + '[/월\\.]\\s*\\d{1,2}[일]?[\\s,]*)+)', 'g');
+    for (const m of extraText.matchAll(spacePat)) {
+      const nums = [...m[1].matchAll(/[/월\.]\s*(\d{1,2})/g)].map(x => parseInt(x[1]));
+      if (nums.includes(day)) {
+        const after = extraText.slice(m.index + m[0].length, m.index + m[0].length + 30);
+        const before = extraText.slice(Math.max(0, m.index - 10), m.index);
+        return classifyExtraStatus(before + ' ' + after, extraText);
+      }
+    }
+
+    // 4. 단일 날짜: 7/9, 7월9일, 7.9, 7)결석
+    const singlePats = [
+      new RegExp(month + '[/\\.]0?' + day + '(?!\\d)', 'g'),
+      new RegExp(month + '월\\s*0?' + day + '일', 'g'),
+      new RegExp(month + '월\\s*0?' + day + '(?!\\d)', 'g'),
+    ];
+    for (const pat of singlePats) {
+      const m = pat.exec(extraText);
+      if (m) {
+        const after = extraText.slice(m.index + m[0].length, m.index + m[0].length + 40);
+        const before = extraText.slice(Math.max(0, m.index - 10), m.index);
+        return classifyExtraStatus(before + ' ' + after, extraText);
+      }
+    }
+
+    return null;
+  } catch(e) { return null; }
+}
+
+function classifyExtraStatus(context, fullText) {
+  if (context.includes('결석')) return { status: 'absent_approved', label: '사유결석', icon: '❌' };
+  if (context.includes('지각')) {
+    const tm = context.match(/(\d{1,2}시)/);
+    const t = tm ? ' ' + tm[1] : '';
+    return { status: 'late_approved', label: '사유지각' + t, icon: '⏰' };
+  }
+  if (context.includes('조퇴')) {
+    const tm = context.match(/(\d{1,2}시)/);
+    const t = tm ? ' ' + tm[1] : '';
+    return { status: 'present', label: '조퇴' + t, icon: '🚪' };
+  }
+  if (context.includes('등원') || context.includes('하원')) {
+    return { status: 'present', label: '특별일정', icon: '📌' };
+  }
+  return { status: 'present', label: '기타일정', icon: '📌' };
+}
+
+// ══════════════════════════════════════════════════
+// 기타일정 자동반영 버튼
+// ══════════════════════════════════════════════════
+function applyExtraToday() {
+  if (!att[curDate]) att[curDate] = {};
+  let cnt = 0;
+  students.forEach(s => {
+    const entry = scheduleData[s.name];
+    if (!entry || !entry.extra) return;
+    const result = parseExtraForDate(entry.extra, curDate);
+    if (!result) return;
+    // 이미 수동으로 설정된 경우는 덮어쓰지 않음
+    const cur = getSt(s.id);
+    if (cur !== 'none') return;
+    att[curDate][s.id] = { status: result.status, time: '' };
+    cnt++;
+  });
+  save(); render(); stats();
+  showToast(`📌 기타일정 ${cnt}명 자동반영 완료!`);
+}
+
 function handleScheduleXlsx(input){
-  const file = input.files[0];
-  if(!file) return;
+  const file = input.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = function(e){
     try{
@@ -307,7 +376,6 @@ function handleScheduleXlsx(input){
       const wb = XLSX.read(data, {type:'array'});
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-
       const header = (rows[0]||[]).map(h=>String(h).trim());
       const nameIdx   = header.findIndex(h=>h.includes('이름'));
       const monIdx    = header.findIndex(h=>h.includes('월'));
@@ -318,258 +386,188 @@ function handleScheduleXlsx(input){
       const satIdx    = header.findIndex(h=>h.includes('토'));
       const extraIdx  = header.findIndex(h=>h.includes('기타'));
       const statusIdx = header.findIndex(h=>h.includes('승인'));
-
       if(nameIdx===-1){showToast('❌ 이름 컬럼을 찾을 수 없습니다');input.value='';return;}
-
       const parsed = {};
       for(let i=1;i<rows.length;i++){
         const row = rows[i];
         const name = String(row[nameIdx]||'').trim();
         if(!name) continue;
-        parsed[name] = {
-          mon:   String(row[monIdx]  ||'').trim(),
-          tue:   String(row[tueIdx]  ||'').trim(),
-          wed:   String(row[wedIdx]  ||'').trim(),
-          thu:   String(row[thuIdx]  ||'').trim(),
-          fri:   String(row[friIdx]  ||'').trim(),
-          sat:   String(row[satIdx]  ||'').trim(),
-          extra: String(row[extraIdx]||'').trim(),
-          approvalStatus: String(row[statusIdx]||'').trim()
+        parsed[name]={
+          mon:String(row[monIdx]||'').trim(), tue:String(row[tueIdx]||'').trim(),
+          wed:String(row[wedIdx]||'').trim(), thu:String(row[thuIdx]||'').trim(),
+          fri:String(row[friIdx]||'').trim(), sat:String(row[satIdx]||'').trim(),
+          extra:String(row[extraIdx]||'').trim(),
+          approvalStatus:String(row[statusIdx]||'').trim()
         };
       }
-
       scheduleData = parsed;
       localStorage.setItem(SK_SCHED, JSON.stringify(scheduleData));
       const cnt = Object.keys(scheduleData).length;
-      showSchedBanner(`정기일정 ${cnt}명 적용됨 — 카드 하단 비고란에서 확인하세요.`);
+      showSchedBanner(`정기일정 ${cnt}명 적용됨`);
       document.getElementById('schedIndicator').classList.add('active');
+      checkExtraBtn();
       render();
       showToast(`📅 정기일정 ${cnt}명 로드 완료!`);
-    } catch(err){
-      showToast('❌ 파일 파싱 오류: '+err.message);
-    }
+    } catch(err){ showToast('❌ 파일 파싱 오류: '+err.message); }
     input.value='';
   };
   reader.readAsArrayBuffer(file);
 }
 
+function checkExtraBtn() {
+  // 오늘 날짜에 기타일정이 해당하는 학생이 있으면 버튼 표시
+  const hasExtra = students.some(s => {
+    const entry = scheduleData[s.name];
+    return entry && entry.extra && parseExtraForDate(entry.extra, curDate);
+  });
+  document.getElementById('extraBtn').style.display = hasExtra ? 'inline-flex' : 'none';
+}
+
 function clearSchedule(){
-  scheduleData = {};
+  scheduleData={};
   localStorage.removeItem(SK_SCHED);
   document.getElementById('schedBanner').classList.remove('show');
   document.getElementById('schedIndicator').classList.remove('active');
+  document.getElementById('extraBtn').style.display='none';
   render();
   showToast('🗑 정기일정이 초기화되었습니다');
 }
-
 function showSchedBanner(msg){
-  document.getElementById('schedBannerTxt').textContent = msg;
+  document.getElementById('schedBannerTxt').textContent=msg;
   document.getElementById('schedBanner').classList.add('show');
 }
 
-const DOW_KEY = ['sun','mon','tue','wed','thu','fri','sat'];
-const DOW_LABEL = ['일','월','화','수','목','금','토'];
+const DOW_KEY=['sun','mon','tue','wed','thu','fri','sat'];
 
 function getScheduleForDate(studentName, dateStr){
-  const entry = scheduleData[studentName];
-  if(!entry) return null;
-  const dow = new Date(dateStr+'T00:00:00').getDay();
-  const key = DOW_KEY[dow];
-  if(key === 'sun'){
-    return { dayText: entry.extra||'', extra: entry.extra||'', dow, key, approvalStatus: entry.approvalStatus };
-  }
-  const dayText = entry[key] || '';
-  return { dayText, extra: entry.extra||'', dow, key, approvalStatus: entry.approvalStatus };
+  const entry=scheduleData[studentName]; if(!entry) return null;
+  const dow=new Date(dateStr+'T00:00:00').getDay();
+  const key=DOW_KEY[dow];
+  if(key==='sun') return {dayText:entry.extra||'',extra:entry.extra||'',dow,key,approvalStatus:entry.approvalStatus};
+  return {dayText:entry[key]||'',extra:entry.extra||'',dow,key,approvalStatus:entry.approvalStatus};
 }
 
 function parseNoteTags(schedInfo){
   if(!schedInfo) return [];
-  const { dayText, approvalStatus } = schedInfo;
-  const tags = [];
-  if(!dayText || dayText.toLowerCase() === 'nan') return tags;
-  if(dayText.includes('결석')){
-    tags.push({type:'sched-absent', icon:'❌', label:'결석 예정'});
-  }
-  const lateMatch = dayText.match(/지각\s*(\d{1,2}시(?:\d{1,2}분)?)/);
-  if(lateMatch){
-    tags.push({type:'sched-late', icon:'⏰', label:'지각 '+lateMatch[1]});
-  } else if(dayText.includes('지각')){
-    tags.push({type:'sched-late', icon:'⏰', label:'지각 예정'});
-  }
-  const departMatch = dayText.match(/조퇴\s*(\d{1,2}시(?:\d{1,2}분)?)/);
-  if(departMatch){
-    tags.push({type:'sched-depart', icon:'🚪', label:'조퇴 '+departMatch[1]});
-  }
-  if(dayText.includes('외출')){
-    tags.push({type:'sched-out', icon:'🚶', label:'외출 있음'});
-  }
-  if(tags.length===0 && (dayText.includes('8시') || dayText.includes('등원 8'))){
-    tags.push({type:'sched-normal', icon:'✅', label:'정상 등원'});
-  }
-  if(approvalStatus && (approvalStatus.includes('승인'))){
-    tags.push({type:'sched-special', icon:'✓', label:approvalStatus});
-  }
+  const {dayText,approvalStatus}=schedInfo; const tags=[];
+  if(!dayText||dayText.toLowerCase()==='nan') return tags;
+  if(dayText.includes('결석')) tags.push({type:'sched-absent',icon:'❌',label:'결석 예정'});
+  const lm=dayText.match(/지각\s*(\d{1,2}시(?:\d{1,2}분)?)/);
+  if(lm) tags.push({type:'sched-late',icon:'⏰',label:'지각 '+lm[1]});
+  else if(dayText.includes('지각')) tags.push({type:'sched-late',icon:'⏰',label:'지각 예정'});
+  const dm=dayText.match(/조퇴\s*(\d{1,2}시(?:\d{1,2}분)?)/);
+  if(dm) tags.push({type:'sched-depart',icon:'🚪',label:'조퇴 '+dm[1]});
+  if(dayText.includes('외출')) tags.push({type:'sched-out',icon:'🚶',label:'외출 있음'});
+  if(tags.length===0&&(dayText.includes('8시')||dayText.includes('등원 8'))) tags.push({type:'sched-normal',icon:'✅',label:'정상 등원'});
+  if(approvalStatus&&approvalStatus.includes('승인')) tags.push({type:'sched-special',icon:'✓',label:approvalStatus});
   return tags;
 }
 
-// ── 불러오기 ──────────────────────────────────────────
 async function reload(){ await loadStudents(); }
 
 async function loadStudents(){
-  show('scLoad'); hideMain();
-  setMsg('구글 시트 연결 중...');
-
-  // 저장된 정기일정 복원
-  const savedSched = localStorage.getItem(SK_SCHED);
+  show('scLoad'); hideMain(); setMsg('구글 시트 연결 중...');
+  const savedSched=localStorage.getItem(SK_SCHED);
   if(savedSched){
-    try{ scheduleData = JSON.parse(savedSched); }catch(e){}
-    if(Object.keys(scheduleData).length > 0){
+    try{ scheduleData=JSON.parse(savedSched); }catch(e){}
+    if(Object.keys(scheduleData).length>0){
       showSchedBanner(`정기일정 ${Object.keys(scheduleData).length}명 복원됨`);
       document.getElementById('schedIndicator').classList.add('active');
     }
   }
-
-  // ① 먼저 localStorage 백업 확인
-  const backup = localStorage.getItem(SK+'_students');
-
+  const backup=localStorage.getItem(SK+'_students');
   try{
-    // ② CORS 대응: no-cors 대신 일반 fetch (GAS는 CORS 허용)
-    const controller = new AbortController();
-    const timeout = setTimeout(()=>controller.abort(), 8000); // 8초 타임아웃
-    const res = await fetch(GAS_URL, { signal: controller.signal });
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),8000);
+    const res=await fetch(GAS_URL,{signal:controller.signal});
     clearTimeout(timeout);
-
     if(!res.ok) throw new Error('HTTP '+res.status);
-
-    const json = await res.json();
-
-    if(json.status === 'ok' && Array.isArray(json.students) && json.students.length > 0){
-      students = json.students.map((name, i) => ({
-        id: 's'+i, num: String(i+1), name: name.toString().trim()
-      })).filter(s => s.name);
-      localStorage.setItem(SK+'_students', JSON.stringify(students));
-      startApp();
-      showToast(`✅ ${students.length}명 불러왔습니다!`);
-      return;
+    const json=await res.json();
+    if(json.status==='ok'&&Array.isArray(json.students)&&json.students.length>0){
+      students=json.students.map((name,i)=>({id:'s'+i,num:String(i+1),name:name.toString().trim()})).filter(s=>s.name);
+      localStorage.setItem(SK+'_students',JSON.stringify(students));
+      startApp(); showToast(`✅ ${students.length}명 불러왔습니다!`); return;
     }
-
-    // ③ 응답은 왔지만 students 배열이 없거나 비어있는 경우
-    if(json.status === 'ok' && (!json.students || json.students.length === 0)){
-      throw new Error('명단이 비어있습니다 (구글 시트를 확인해주세요)');
-    }
-
-    throw new Error(json.message || '알 수 없는 오류');
-
+    if(json.status==='ok'&&(!json.students||json.students.length===0)) throw new Error('명단이 비어있습니다');
+    throw new Error(json.message||'알 수 없는 오류');
   } catch(e){
-    const isTimeout = e.name === 'AbortError';
-    console.warn('GAS 실패:', e.message);
-
+    const isTimeout=e.name==='AbortError';
     if(backup){
-      // ④ 백업 명단으로 오프라인 모드 실행
-      try{
-        students = JSON.parse(backup);
-        startApp();
-        showToast(isTimeout ? '⏱ 연결 시간 초과 — 저장된 명단으로 실행 중' : '⚠️ 오프라인 모드 (저장된 명단)');
-      } catch(pe){
-        showError('저장된 명단을 불러오는데 실패했습니다.<br>인터넷 연결 후 새로고침 해주세요.');
-      }
+      try{ students=JSON.parse(backup); startApp(); showToast(isTimeout?'⏱ 연결 시간 초과 — 저장된 명단으로 실행 중':'⚠️ 오프라인 모드 (저장된 명단)'); }
+      catch(pe){ showError('저장된 명단을 불러오는데 실패했습니다.<br>인터넷 연결 후 새로고침 해주세요.'); }
     } else {
-      // ⑤ 백업도 없으면 오류 안내 + 재시도 버튼 표시
-      const msg = isTimeout
-        ? '구글 시트 응답 시간이 초과됐습니다.<br>잠시 후 다시 시도해주세요.'
-        : `연결에 실패했습니다.<br><small style="color:#999">${e.message}</small>`;
-      showError(msg);
+      showError(isTimeout?'구글 시트 응답 시간이 초과됐습니다.':e.message);
     }
   }
 }
 
 function showError(msg){
-  hide('scLoad');
-  // 로딩 영역을 오류 안내로 교체
-  const loadEl = document.getElementById('scLoad');
-  loadEl.style.display = 'flex';
-  loadEl.innerHTML = `
-    <div class="err-box">
-      <h3>⚠️ 연결 실패</h3>
-      <p>${msg}</p>
-      <button class="btn btn-primary" onclick="loadStudents()">🔄 다시 시도</button>
-    </div>`;
+  const el=document.getElementById('scLoad'); el.style.display='flex';
+  el.innerHTML=`<div class="err-box"><h3>⚠️ 연결 실패</h3><p>${msg}</p><button class="btn btn-primary" onclick="loadStudents()">🔄 다시 시도</button></div>`;
 }
-
-function setMsg(t){
-  // 로딩 메시지 업데이트 (스피너 구조가 살아있을 때만)
-  const e=document.getElementById('loadMsg');
-  if(e) e.textContent=t;
-}
+function setMsg(t){ const e=document.getElementById('loadMsg'); if(e) e.textContent=t; }
 
 function startApp(){
-  const saved = localStorage.getItem(SK);
-  if(saved){
-    try{ att = JSON.parse(saved); }catch(e){ att={}; }
-  }
-  curDate = today();
+  const saved=localStorage.getItem(SK);
+  if(saved){ try{ att=JSON.parse(saved); }catch(e){ att={}; } }
+  curDate=today();
   if(!att[curDate]) att[curDate]={};
-  document.getElementById('dInput').value = curDate;
-  hide('scLoad');
-  showMain();
-  render();
-  stats();
+  document.getElementById('dInput').value=curDate;
+  hide('scLoad'); showMain(); checkExtraBtn(); render(); stats();
 }
 
-// ── 렌더 ──────────────────────────────────────────────
 function render(){
   const q=(document.getElementById('srch').value||'').toLowerCase();
-  const filterVal = document.getElementById('filterSched').value;
-  const grid=document.getElementById('grid');
-  grid.innerHTML='';
-
+  const filterVal=document.getElementById('filterSched').value;
+  const grid=document.getElementById('grid'); grid.innerHTML='';
   let f=students.filter(s=>s.name.toLowerCase().includes(q));
-
-  if(filterVal !== 'all'){
-    f = f.filter(s => {
-      const si = getScheduleForDate(s.name, curDate);
-      if(!si || !si.dayText || si.dayText.toLowerCase()==='nan') return false;
-      if(filterVal === 'hasnote') return !!si.dayText;
-      if(filterVal === 'late_sched') return si.dayText.includes('지각');
-      if(filterVal === 'absent_sched') return si.dayText.includes('결석');
+  if(filterVal!=='all'){
+    f=f.filter(s=>{
+      const si=getScheduleForDate(s.name,curDate);
+      const entry=scheduleData[s.name];
+      if(filterVal==='hasnote') return si&&si.dayText&&si.dayText.toLowerCase()!=='nan';
+      if(filterVal==='late_sched') return si&&si.dayText&&si.dayText.includes('지각');
+      if(filterVal==='absent_sched') return si&&si.dayText&&si.dayText.includes('결석');
+      if(filterVal==='extra_today') return entry&&entry.extra&&!!parseExtraForDate(entry.extra,curDate);
       return true;
     });
   }
-
   document.getElementById('cnt').textContent=`${f.length}명`;
-
-  if(!f.length){
-    grid.innerHTML='<div class="empty"><div style="font-size:40px;margin-bottom:12px">🔍</div><div>검색 결과 없음</div></div>';
-    return;
-  }
+  if(!f.length){ grid.innerHTML='<div class="empty"><div style="font-size:40px;margin-bottom:12px">🔍</div><div>검색 결과 없음</div></div>'; return; }
 
   f.forEach(s=>{
-    const st=getSt(s.id);
-    const tm=getTime(s.id);
-    const schedInfo = getScheduleForDate(s.name, curDate);
-    const tags = parseNoteTags(schedInfo);
-    const hasNote = schedInfo && schedInfo.dayText && schedInfo.dayText.toLowerCase() !== 'nan';
+    const st=getSt(s.id), tm=getTime(s.id);
+    const schedInfo=getScheduleForDate(s.name,curDate);
+    const tags=parseNoteTags(schedInfo);
+    const hasNote=schedInfo&&schedInfo.dayText&&schedInfo.dayText.toLowerCase()!=='nan';
+
+    // ✅ 기타란 오늘 해당 일정
+    const entry=scheduleData[s.name];
+    const extraResult=entry&&entry.extra?parseExtraForDate(entry.extra,curDate):null;
 
     const d=document.createElement('div');
     d.className='card'; d.dataset.s=st; d.id='c'+s.id;
 
-    let tagsHtml = '';
-    if(tags.length > 0){
-      tagsHtml = tags.map(t=>`<span class="ntag ${t.type}">${t.icon} ${t.label}</span>`).join('');
+    let tagsHtml=tags.map(t=>`<span class="ntag ${t.type}">${t.icon} ${t.label}</span>`).join('');
+    // 기타란 날짜 해당 태그 추가
+    if(extraResult){
+      const cls=extraResult.status==='absent_approved'?'extra-absent':'extra-late';
+      tagsHtml+=`<span class="ntag ${cls}">📌 기타: ${extraResult.label}</span>`;
     }
 
-    let noteTextHtml = '';
-    if(hasNote && schedInfo.dayText){
-      const short = schedInfo.dayText.length > 40 ? schedInfo.dayText.slice(0,40)+'...' : schedInfo.dayText;
-      noteTextHtml = `<div class="note-full" onclick="openNoteMo('${s.name.replace(/'/g,'\\\'')}')" title="클릭하여 상세 보기">${short}</div>`;
+    let noteTextHtml='';
+    if(hasNote&&schedInfo.dayText){
+      const short=schedInfo.dayText.length>40?schedInfo.dayText.slice(0,40)+'...':schedInfo.dayText;
+      noteTextHtml=`<div class="note-full" onclick="openNoteMo('${s.name.replace(/'/g,'\\\'')}')">${short}</div>`;
     }
-
-    let extraHtml = '';
-    if(schedInfo && schedInfo.extra){
-      const todayMentioned = checkExtraMention(schedInfo.extra, curDate);
-      if(todayMentioned){
-        extraHtml = `<div class="note-full" style="color:#d97706;margin-top:2px" onclick="openNoteMo('${s.name.replace(/'/g,'\\\'')}')" title="기타 일정">📌 ${todayMentioned}</div>`;
-      }
+    // 기타란 전체 텍스트 요약 표시
+    let extraHtml='';
+    if(entry&&entry.extra&&extraResult){
+      const short=entry.extra.length>50?entry.extra.slice(0,50)+'...':entry.extra;
+      extraHtml=`<div class="note-full" style="color:#d97706;margin-top:2px" onclick="openNoteMo('${s.name.replace(/'/g,'\\\'')}')" title="기타 일정 전체 보기">📌 ${short}</div>`;
+    } else if(schedInfo&&schedInfo.extra){
+      const todayMentioned=checkExtraMention(schedInfo.extra,curDate);
+      if(todayMentioned) extraHtml=`<div class="note-full" style="color:#d97706;margin-top:2px" onclick="openNoteMo('${s.name.replace(/'/g,'\\\'')}')" title="기타 일정">📌 ${todayMentioned}</div>`;
     }
 
     d.innerHTML=`
@@ -577,9 +575,9 @@ function render(){
         <div style="flex:1;min-width:0">
           <div class="snum">No.${s.num}</div>
           <div class="sname">${s.name}</div>
-          ${tm ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;font-family:'Space Mono',monospace">⏰ ${tm}</div>` : ''}
-          ${st==='late_approved' ? `<div style="font-size:11px;color:#b45309;margin-top:2px">⏰ 사유지각</div>` : ''}
-          ${st==='absent_approved' ? `<div style="font-size:11px;color:#f5a623;margin-top:2px">📋 사유결석</div>` : ''}
+          ${tm?`<div style="font-size:11px;color:var(--muted);margin-top:2px;font-family:'Space Mono',monospace">⏰ ${tm}</div>`:''}
+          ${st==='late_approved'?`<div style="font-size:11px;color:#b45309;margin-top:2px">⏰ 사유지각</div>`:''}
+          ${st==='absent_approved'?`<div style="font-size:11px;color:#f5a623;margin-top:2px">📋 사유결석</div>`:''}
         </div>
         <div class="abtns">
           <button class="ab pb ${st==='present'?'on':''}" onclick="setSt('${s.id}','present')" title="출석">✅</button>
@@ -587,92 +585,65 @@ function render(){
           <button class="ab xb ${st==='absent'||st==='absent_approved'?'on':''}" onclick="setSt('${s.id}','absent')" title="무단결석">❌</button>
         </div>
       </div>
-      ${(hasNote || extraHtml) ? `
+      ${(tagsHtml||noteTextHtml||extraHtml)?`
       <div class="note-row visible">
-        ${tagsHtml ? `<div class="note-tags">${tagsHtml}</div>` : ''}
-        ${noteTextHtml}
-        ${extraHtml}
-      </div>` : ''}`;
+        ${tagsHtml?`<div class="note-tags">${tagsHtml}</div>`:''}
+        ${noteTextHtml}${extraHtml}
+      </div>`:''}`;
     grid.appendChild(d);
   });
 }
 
-function checkExtraMention(extraText, dateStr){
+function checkExtraMention(extraText,dateStr){
   if(!extraText) return null;
-  const d = new Date(dateStr+'T00:00:00');
-  const month = d.getMonth()+1;
-  const day = d.getDate();
-  const patterns = [
-    new RegExp(month+'\\/'+day+'[일]?\\s*[^,/]*'),
-    new RegExp(month+'월\\s*'+day+'일?[^,/]*'),
-  ];
-  for(const p of patterns){
-    const m = extraText.match(p);
-    if(m) return m[0].trim().slice(0,50);
-  }
+  const d=new Date(dateStr+'T00:00:00'), month=d.getMonth()+1, day=d.getDate();
+  const patterns=[new RegExp(month+'\\/'+day+'[일]?\\s*[^,/]*'),new RegExp(month+'월\\s*'+day+'일?[^,/]*')];
+  for(const p of patterns){ const m=extraText.match(p); if(m) return m[0].trim().slice(0,50); }
   return null;
 }
 
 function openNoteMo(name){
-  const s = students.find(st=>st.name===name);
-  if(!s) return;
-  const entry = scheduleData[name];
-  if(!entry){ showToast('정기일정 없음'); return; }
-
-  document.getElementById('noteMoTitle').textContent = `📋 ${name} — 정기일정`;
-  const dow = new Date(curDate+'T00:00:00').getDay();
-  const todayKey = DOW_KEY[dow];
-  const days = [
-    {key:'mon',label:'월요일'},{key:'tue',label:'화요일'},{key:'wed',label:'수요일'},
-    {key:'thu',label:'목요일'},{key:'fri',label:'금요일'},{key:'sat',label:'토요일'}
-  ];
-
-  let html = '';
+  const s=students.find(st=>st.name===name); if(!s) return;
+  const entry=scheduleData[name]; if(!entry){ showToast('정기일정 없음'); return; }
+  document.getElementById('noteMoTitle').textContent=`📋 ${name} — 정기일정`;
+  const dow=new Date(curDate+'T00:00:00').getDay(), todayKey=DOW_KEY[dow];
+  const days=[{key:'mon',label:'월요일'},{key:'tue',label:'화요일'},{key:'wed',label:'수요일'},{key:'thu',label:'목요일'},{key:'fri',label:'금요일'},{key:'sat',label:'토요일'}];
+  let html='';
   days.forEach(d=>{
-    const val = entry[d.key];
-    if(!val || val.toLowerCase()==='nan') return;
-    const isToday = d.key === todayKey;
-    html += `<div class="note-detail-item" style="${isToday?'border-color:#1a73e8;background:#f0f7ff;':''}">
+    const val=entry[d.key]; if(!val||val.toLowerCase()==='nan') return;
+    const isToday=d.key===todayKey;
+    html+=`<div class="note-detail-item" style="${isToday?'border-color:#1a73e8;background:#f0f7ff;':''}">
       <div class="note-detail-label"><span class="dow-badge" style="${isToday?'background:#1a73e8;color:#fff;':''}">${d.label}${isToday?' ← 오늘':''}</span></div>
-      <div class="note-detail-val">${val}</div>
-    </div>`;
+      <div class="note-detail-val">${val}</div></div>`;
   });
-
   if(entry.extra){
-    html += `<div class="note-detail-item" style="border-color:#d97706;background:#fffbf0">
-      <div class="note-detail-label"><span class="dow-badge" style="background:#d97706;color:#fff">기타</span></div>
-      <div class="note-detail-val">${entry.extra}</div>
-    </div>`;
+    // 기타란에서 오늘 해당 일정 하이라이트
+    const extraResult=parseExtraForDate(entry.extra,curDate);
+    const extraStyle=extraResult?'border-color:#d97706;background:#fffbf0':'';
+    html+=`<div class="note-detail-item" style="${extraStyle}">
+      <div class="note-detail-label"><span class="dow-badge" style="background:#d97706;color:#fff">기타${extraResult?' ← 오늘 해당':''}</span></div>
+      <div class="note-detail-val">${entry.extra}${extraResult?`<div style="margin-top:6px;padding:4px 10px;background:#fff3e0;border-radius:8px;font-size:12px;color:#b45309;font-weight:700">📌 오늘 적용: ${extraResult.label}</div>`:''}</div></div>`;
   }
-  if(entry.approvalStatus){
-    html += `<div style="text-align:right;margin-top:10px">
-      <span style="font-size:12px;background:#f3e8ff;color:#7c3aed;padding:3px 12px;border-radius:20px;border:1px solid #d8b4fe">${entry.approvalStatus}</span>
-    </div>`;
-  }
-
-  document.getElementById('noteMoContent').innerHTML = html || '<div style="color:var(--muted);text-align:center;padding:30px">일정 없음</div>';
+  if(entry.approvalStatus) html+=`<div style="text-align:right;margin-top:10px"><span style="font-size:12px;background:#f3e8ff;color:#7c3aed;padding:3px 12px;border-radius:20px;border:1px solid #d8b4fe">${entry.approvalStatus}</span></div>`;
+  document.getElementById('noteMoContent').innerHTML=html||'<div style="color:var(--muted);text-align:center;padding:30px">일정 없음</div>';
   document.getElementById('noteMo').classList.add('open');
 }
 function closeNoteMo(){ document.getElementById('noteMo').classList.remove('open'); }
 document.addEventListener('click',e=>{ if(e.target.id==='noteMo') closeNoteMo(); });
 
-function getSt(id){ const v=((att[curDate]||{})[id]); return v ? (typeof v==='object' ? v.status : v) : 'none'; }
-function getTime(id){ const v=((att[curDate]||{})[id]); return v && typeof v==='object' ? v.time : ''; }
+function getSt(id){ const v=((att[curDate]||{})[id]); return v?(typeof v==='object'?v.status:v):'none'; }
+function getTime(id){ const v=((att[curDate]||{})[id]); return v&&typeof v==='object'?v.time:''; }
 
-function setSt(id, status){
+function setSt(id,status){
   if(!att[curDate]) att[curDate]={};
-  const cur = getSt(id);
-  cur===status ? delete att[curDate][id] : (att[curDate][id]={status, time:''});
+  const cur=getSt(id);
+  cur===status?delete att[curDate][id]:(att[curDate][id]={status,time:''});
   save();
   const card=document.getElementById('c'+id);
   if(card){
-    const ns=getSt(id);
-    card.dataset.s=ns||'none';
+    const ns=getSt(id); card.dataset.s=ns||'none';
     card.querySelectorAll('.ab').forEach(b=>b.classList.remove('on'));
-    if(ns && ns!=='none'){
-      const cls={present:'pb',late:'lb',absent:'xb'}[ns];
-      card.querySelector('.'+cls)?.classList.add('on');
-    }
+    if(ns&&ns!=='none'){ const cls={present:'pb',late:'lb',absent:'xb'}[ns]; card.querySelector('.'+cls)?.classList.add('on'); }
   }
   stats();
 }
@@ -680,11 +651,9 @@ function setSt(id, status){
 function setAll(s){
   if(!att[curDate]) att[curDate]={};
   students.forEach(st=>{att[curDate][st.id]=s;});
-  save(); render(); stats();
-  showToast('✅ 전체 출석으로 설정했습니다!');
+  save(); render(); stats(); showToast('✅ 전체 출석으로 설정했습니다!');
 }
 
-// ── 통계 ──────────────────────────────────────────────
 function stats(){
   const n=students.length;
   const p=students.filter(s=>getSt(s.id)==='present').length;
@@ -711,35 +680,24 @@ function stats(){
 function changeDate(){
   curDate=document.getElementById('dInput').value;
   if(!att[curDate]) att[curDate]={};
-  const dow = new Date(curDate+'T00:00:00').getDay();
-  if(dow === 0) showToast('⚠️ 일요일은 자율등원일입니다.');
-  render(); stats();
+  const dow=new Date(curDate+'T00:00:00').getDay();
+  if(dow===0) showToast('⚠️ 일요일은 자율등원일입니다.');
+  checkExtraBtn(); render(); stats();
 }
 
-// ── 기록 ──────────────────────────────────────────────
 function openHist(){
-  const c=document.getElementById('histC');
-  const dates=Object.keys(att).sort().reverse();
-  if(!dates.length){
-    c.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">📭 기록 없음</div>';
-  }else{
+  const c=document.getElementById('histC'), dates=Object.keys(att).sort().reverse();
+  if(!dates.length){ c.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)">📭 기록 없음</div>'; }
+  else{
     c.innerHTML=dates.map(d=>{
-      const day=att[d];
-      const getS=id=>{const v=day[id]; return v?(typeof v==='object'?v.status:v):'none';};
-      const p=students.filter(s=>getS(s.id)==='present');
-      const l=students.filter(s=>getS(s.id)==='late');
-      const a=students.filter(s=>getS(s.id)==='absent');
+      const day=att[d], getS=id=>{const v=day[id];return v?(typeof v==='object'?v.status:v):'none';};
+      const p=students.filter(s=>getS(s.id)==='present'), l=students.filter(s=>getS(s.id)==='late'), a=students.filter(s=>getS(s.id)==='absent');
       return`<div style="margin-bottom:22px">
         <div style="font-weight:700;margin-bottom:10px;color:var(--accent);font-family:'Space Mono',monospace">${d}</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-          <span class="badge bp">출석 ${p.length}</span>
-          <span class="badge bl">지각 ${l.length}</span>
-          <span class="badge ba">결석 ${a.length}</span>
-        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"><span class="badge bp">출석 ${p.length}</span><span class="badge bl">지각 ${l.length}</span><span class="badge ba">결석 ${a.length}</span></div>
         ${l.length?`<div style="font-size:13px;color:var(--late);margin-bottom:4px">⚠️ 무단지각: ${l.map(s=>s.name).join(', ')}</div>`:''}
         ${a.length?`<div style="font-size:13px;color:var(--absent)">❌ 무단결석: ${a.map(s=>s.name).join(', ')}</div>`:''}
-        <div style="height:1px;background:var(--border);margin-top:14px"></div>
-      </div>`;
+        <div style="height:1px;background:var(--border);margin-top:14px"></div></div>`;
     }).join('');
   }
   document.getElementById('histMo').classList.add('open');
@@ -747,409 +705,231 @@ function openHist(){
 function closeMo(){ document.getElementById('histMo').classList.remove('open'); }
 document.addEventListener('click',e=>{ if(e.target.id==='histMo') closeMo(); });
 
-// ── 내보내기 ──────────────────────────────────────────
 function exportCSV(){
-  const dates=Object.keys(att).sort();
-  const rows=[['번호','이름',...dates,'오늘 비고']];
+  const dates=Object.keys(att).sort(), rows=[['번호','이름',...dates,'오늘 비고']];
   students.forEach(s=>{
-    const si = getScheduleForDate(s.name, curDate);
-    const note = si && si.dayText ? si.dayText : '';
+    const si=getScheduleForDate(s.name,curDate), note=si&&si.dayText?si.dayText:'';
     rows.push([s.num,s.name,...dates.map(d=>{
-      const v=(att[d]||{})[s.id];
-      const st=v?(typeof v==='object'?v.status:v):'';
+      const v=(att[d]||{})[s.id], st=v?(typeof v==='object'?v.status:v):'';
       return ({present:'출석',late:'무단지각',absent:'무단결석'})[st]||'';
-    }), note]);
+    }),note]);
   });
   const blob=new Blob(['\uFEFF'+rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`출결기록_${today()}.csv`; a.click();
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`출결기록_${today()}.csv`; a.click();
   showToast('💾 CSV 저장 완료!');
 }
 
 function exportSummary(){
-  const p=students.filter(s=>getSt(s.id)==='present');
-  const l=students.filter(s=>getSt(s.id)==='late');
-  const la=students.filter(s=>getSt(s.id)==='late_approved');
-  const a=students.filter(s=>getSt(s.id)==='absent');
-  const aa=students.filter(s=>getSt(s.id)==='absent_approved');
-  const none=students.filter(s=>getSt(s.id)==='none');
-
-  let text = `[출결 요약] ${curDate} (7층)\n전체: ${students.length}명\n`;
-  text += `✅ 출석: ${p.length}명\n`;
-  if(l.length) text += `⚠️ 무단지각: ${l.length}명 (${l.map(s=>s.name).join(', ')})\n`;
-  if(la.length) text += `⏰ 사유지각: ${la.length}명 (${la.map(s=>s.name).join(', ')})\n`;
-  if(a.length) text += `❌ 무단결석: ${a.length}명 (${a.map(s=>s.name).join(', ')})\n`;
-  if(aa.length) text += `📋 사유결석: ${aa.length}명 (${aa.map(s=>s.name).join(', ')})\n`;
-  if(none.length) text += `⬜ 미확인: ${none.length}명 (${none.map(s=>s.name).join(', ')})\n`;
-
-  navigator.clipboard.writeText(text)
-    .then(()=>showToast('📋 요약 복사 완료!'))
-    .catch(()=>showToast('⚠️ 복사 실패'));
+  const p=students.filter(s=>getSt(s.id)==='present'), l=students.filter(s=>getSt(s.id)==='late'),
+        la=students.filter(s=>getSt(s.id)==='late_approved'), a=students.filter(s=>getSt(s.id)==='absent'),
+        aa=students.filter(s=>getSt(s.id)==='absent_approved'), none=students.filter(s=>getSt(s.id)==='none');
+  let text=`[출결 요약] ${curDate} (7층)\n전체: ${students.length}명\n✅ 출석: ${p.length}명\n`;
+  if(l.length) text+=`⚠️ 무단지각: ${l.length}명 (${l.map(s=>s.name).join(', ')})\n`;
+  if(la.length) text+=`⏰ 사유지각: ${la.length}명 (${la.map(s=>s.name).join(', ')})\n`;
+  if(a.length) text+=`❌ 무단결석: ${a.length}명 (${a.map(s=>s.name).join(', ')})\n`;
+  if(aa.length) text+=`📋 사유결석: ${aa.length}명 (${aa.map(s=>s.name).join(', ')})\n`;
+  if(none.length) text+=`⬜ 미확인: ${none.length}명 (${none.map(s=>s.name).join(', ')})\n`;
+  navigator.clipboard.writeText(text).then(()=>showToast('📋 요약 복사 완료!')).catch(()=>showToast('⚠️ 복사 실패'));
 }
 
-// ── 출입기록 업로드 ──────────────────────────────────
 function handleXlsx(input){
-  const file = input.files[0];
-  if(!file) return;
-
-  const isCsv = file.name.toLowerCase().endsWith('.csv');
-
-  const reader = new FileReader();
-  reader.onload = function(e){
+  const file=input.files[0]; if(!file) return;
+  const isCsv=file.name.toLowerCase().endsWith('.csv');
+  const reader=new FileReader();
+  reader.onload=function(e){
     try{
       if(isCsv){
-        const text = e.target.result;
-        const lines = text.split('\n');
-        const enterRecords = [];
-
-        for(let i=1; i<lines.length; i++){
-          const line = lines[i].trim();
-          if(!line) continue;
-
-          const cols = parseCSVLine(line);
-          if(cols.length < 7) continue;
-
-          const dateStr  = (cols[0]||'').trim();
-          const device   = (cols[4]||'').trim();
-          const userStr  = (cols[6]||'').trim();
-          const event    = (cols[8]||'').trim();
-
-          if(!event.includes('authentication succeeded')) continue;
-          if(!device.includes('입문')) continue;
-
-          const nameMatch = userStr.match(/\(([^)]+)\)/);
-          if(!nameMatch) continue;
-          let name = nameMatch[1].trim();
-          name = name.replace(/\d+$/, '').trim();
-          if(!name) continue;
-
-          const timeMatch = dateStr.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}):(\d{2})/);
-          if(!timeMatch) continue;
-          const hour = parseInt(timeMatch[2]);
-          const min  = parseInt(timeMatch[3]);
-          const timeStr = timeMatch[2]+':'+timeMatch[3];
-
-          enterRecords.push({name, hour, min, timeStr});
+        const lines=e.target.result.split('\n'), enterRecords=[];
+        for(let i=1;i<lines.length;i++){
+          const line=lines[i].trim(); if(!line) continue;
+          const cols=parseCSVLine(line); if(cols.length<7) continue;
+          const dateStr=(cols[0]||'').trim(), device=(cols[4]||'').trim(), userStr=(cols[6]||'').trim(), event=(cols[8]||'').trim();
+          if(!event.includes('authentication succeeded')||!device.includes('입문')) continue;
+          const nameMatch=userStr.match(/\(([^)]+)\)/); if(!nameMatch) continue;
+          let name=nameMatch[1].trim().replace(/\d+$/,'').trim(); if(!name) continue;
+          const timeMatch=dateStr.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}):(\d{2})/); if(!timeMatch) continue;
+          enterRecords.push({name,hour:parseInt(timeMatch[2]),min:parseInt(timeMatch[3]),timeStr:timeMatch[2]+':'+timeMatch[3]});
         }
-
         processEnterRecords(enterRecords);
-
       } else {
-        const data = new Uint8Array(e.target.result);
-        const wb = XLSX.read(data, {type:'array', cellDates:true});
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(ws, {header:1});
-        const header = rows[0] || [];
-        const timeIdx = header.findIndex(h => String(h).includes('시간'));
-        const nameIdx = header.findIndex(h => String(h).includes('이름'));
-        const dirIdx  = header.findIndex(h => String(h).includes('방향'));
-        if(timeIdx === -1 || nameIdx === -1){ showToast('❌ 파일 형식 오류 (시간/이름 컬럼 없음)'); input.value=''; return; }
-        const enterRecords = [];
+        const data=new Uint8Array(e.target.result), wb=XLSX.read(data,{type:'array',cellDates:true});
+        const ws=wb.Sheets[wb.SheetNames[0]], rows=XLSX.utils.sheet_to_json(ws,{header:1});
+        const header=rows[0]||[];
+        const timeIdx=header.findIndex(h=>String(h).includes('시간'));
+        const nameIdx=header.findIndex(h=>String(h).includes('이름'));
+        const dirIdx=header.findIndex(h=>String(h).includes('방향'));
+        if(timeIdx===-1||nameIdx===-1){showToast('❌ 파일 형식 오류');input.value='';return;}
+        const enterRecords=[];
         for(let i=1;i<rows.length;i++){
-          const row = rows[i];
-          if(!row||!row[nameIdx]) continue;
-          const name = String(row[nameIdx]).trim();
-          if(!name) continue;
-          const dir = dirIdx >= 0 ? String(row[dirIdx]||'').toUpperCase() : '';
-          if(dir && dir !== 'ENTER') continue;
-          let timeVal=row[timeIdx]; let hour=25,min=0,isPM=false;
-          if(timeVal instanceof Date){ hour=timeVal.getHours(); min=timeVal.getMinutes(); }
+          const row=rows[i]; if(!row||!row[nameIdx]) continue;
+          const name=String(row[nameIdx]).trim(); if(!name) continue;
+          const dir=dirIdx>=0?String(row[dirIdx]||'').toUpperCase():'';
+          if(dir&&dir!=='ENTER') continue;
+          let timeVal=row[timeIdx],hour=25,min=0,isPM=false;
+          if(timeVal instanceof Date){hour=timeVal.getHours();min=timeVal.getMinutes();}
           else if(typeof timeVal==='string'){
             isPM=timeVal.includes('오후')||timeVal.toLowerCase().includes('pm');
             const cleaned=timeVal.replace(/오전|오후|AM|PM/gi,'').trim();
             const m=cleaned.match(/(\d{1,2}):(\d{2})/);
-            if(m){ hour=parseInt(m[1]); min=parseInt(m[2]); if(isPM&&hour!==12)hour+=12; if(!isPM&&hour===12)hour=0; }
+            if(m){hour=parseInt(m[1]);min=parseInt(m[2]);if(isPM&&hour!==12)hour+=12;if(!isPM&&hour===12)hour=0;}
           } else if(typeof timeVal==='number'){
-            const ts=Math.round(timeVal*86400); hour=Math.floor(ts/3600)%24; min=Math.floor((ts%3600)/60);
+            const ts=Math.round(timeVal*86400);hour=Math.floor(ts/3600)%24;min=Math.floor((ts%3600)/60);
           }
           const timeStr=String(hour).padStart(2,'0')+':'+String(min).padStart(2,'0');
           enterRecords.push({name,hour,min,timeStr});
         }
         processEnterRecords(enterRecords);
       }
-    } catch(err){
-      showToast('❌ 파일 파싱 오류: '+err.message);
-    }
+    } catch(err){ showToast('❌ 파일 파싱 오류: '+err.message); }
     input.value='';
   };
-
-  if(isCsv){
-    reader.readAsText(file, 'UTF-8');
-  } else {
-    reader.readAsArrayBuffer(file);
-  }
+  isCsv?reader.readAsText(file,'UTF-8'):reader.readAsArrayBuffer(file);
 }
 
 function parseCSVLine(line){
-  const result = [];
-  let cur = '', inQuote = false;
-  for(let i=0; i<line.length; i++){
-    const ch = line[i];
-    if(ch === '"'){ inQuote = !inQuote; }
-    else if(ch === ',' && !inQuote){ result.push(cur); cur = ''; }
-    else { cur += ch; }
+  const result=[]; let cur='',inQuote=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){inQuote=!inQuote;}
+    else if(ch===','&&!inQuote){result.push(cur);cur='';}
+    else{cur+=ch;}
   }
-  result.push(cur);
-  return result;
+  result.push(cur); return result;
 }
 
 function processEnterRecords(enterRecords){
- const normName = n => n.replace(/\([^)]*\)/g,'').replace(/\s/g,'').trim();
-
-  const firstEnter = {};
+  const normName=n=>n.replace(/\([^)]*\)/g,'').replace(/\s/g,'').trim();
+  const firstEnter={};
   enterRecords.forEach(r=>{
-    if(!firstEnter[r.name] || r.hour*60+r.min < firstEnter[r.name].hour*60+firstEnter[r.name].min){
-      firstEnter[r.name] = r;
-    }
+    if(!firstEnter[r.name]||r.hour*60+r.min<firstEnter[r.name].hour*60+firstEnter[r.name].min) firstEnter[r.name]=r;
   });
-
-  const present=[], late=[], absentSched=[], unmatched=[];
-  const hasSchedule = Object.keys(scheduleData).length > 0;
-
+  const present=[],late=[],absentSched=[],unmatched=[];
   Object.values(firstEnter).forEach(r=>{
-    const student = students.find(s=>s.name===r.name) ||
-                    students.find(s=>normName(s.name)===normName(r.name));
-    if(!student){ unmatched.push(r); return; }
-
-    const si = getScheduleForDate(student.name, curDate);
-    const dayText = si ? si.dayText : '';
-    const note = dayText.includes('지각') ? '승인지각' : '출석';
-    present.push({name:r.name, time:r.timeStr, note});
+    const student=students.find(s=>s.name===r.name)||students.find(s=>normName(s.name)===normName(r.name));
+    if(!student){unmatched.push(r);return;}
+    const si=getScheduleForDate(student.name,curDate), dayText=si?si.dayText:'';
+    present.push({name:r.name,time:r.timeStr,note:dayText.includes('지각')?'승인지각':'출석'});
   });
-
   students.forEach(s=>{
-    const hasRecord = Object.values(firstEnter).some(r=>
-      r.name===s.name || normName(r.name)===normName(s.name));
+    const hasRecord=Object.values(firstEnter).some(r=>r.name===s.name||normName(r.name)===normName(s.name));
     if(!hasRecord){
-      const si = getScheduleForDate(s.name, curDate);
-      const dayText = si ? si.dayText : '';
-      if(dayText.includes('결석')){
-        absentSched.push({name:s.name, note:'결석(승인)'});
-      }
+      const si=getScheduleForDate(s.name,curDate), dayText=si?si.dayText:'';
+      if(dayText.includes('결석')) absentSched.push({name:s.name,note:'결석(승인)'});
     }
   });
-
-  xlsxParsed = {present, late, absentSched, unmatched,
-    before8: present, after8: late};
-
-  let html = '';
-  if(!hasSchedule){
-    html += `<div style="background:#fff8e6;border:1px solid #f0c040;border-radius:10px;padding:10px 14px;font-size:13px;color:#7a5c00;margin-bottom:16px">⚠️ 정기일정이 없어 전체 출석 처리됩니다. 정기일정을 먼저 업로드하면 정확한 판단이 가능합니다.</div>`;
-  }
-  if(present.length) html+=`<div style="margin-bottom:16px">
-    <div style="font-weight:700;color:var(--present);margin-bottom:8px">✅ 출석 — ${present.length}명</div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px">${present.map(r=>`
-      <span style="background:#e8f5ee;color:var(--present);border:1px solid #b8dfc9;border-radius:20px;padding:4px 12px;font-size:13px">
-        ${r.name} <span style="opacity:.7">${r.time}</span>${r.note==='승인지각'?' 📅':''}
-      </span>`).join('')}
-    </div>
-  </div>`;
-  if(late.length) html+=`<div style="margin-bottom:16px">
-    <div style="font-weight:700;color:var(--late);margin-bottom:8px">⚠️ 무단지각 — ${late.length}명</div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px">${late.map(r=>`
-      <span style="background:#fff3e0;color:var(--late);border:1px solid #f5d5a0;border-radius:20px;padding:4px 12px;font-size:13px">
-        ${r.name} <span style="opacity:.7">${r.time}</span>
-      </span>`).join('')}
-    </div>
-  </div>`;
-  if(absentSched.length) html+=`<div style="margin-bottom:16px">
-    <div style="font-weight:700;color:var(--absent);margin-bottom:8px">❌ 결석(승인) — ${absentSched.length}명</div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px">${absentSched.map(r=>`
-      <span style="background:#fde8e8;color:var(--absent);border:1px solid #f5b8b8;border-radius:20px;padding:4px 12px;font-size:13px">${r.name}</span>`).join('')}
-    </div>
-  </div>`;
-  if(unmatched.length) html+=`<div style="margin-bottom:16px">
-    <div style="font-weight:700;color:var(--muted);margin-bottom:8px">❓ 명단 외 — ${unmatched.length}명</div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px">${unmatched.map(r=>`
-      <span style="background:#f0f4f8;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:13px">
-        ${r.name} <span style="opacity:.7">${r.time}</span>
-      </span>`).join('')}
-    </div>
-  </div>`;
+  xlsxParsed={present,late,absentSched,unmatched,before8:present,after8:late};
+  let html='';
+  if(present.length) html+=`<div style="margin-bottom:16px"><div style="font-weight:700;color:var(--present);margin-bottom:8px">✅ 출석 — ${present.length}명</div><div style="display:flex;flex-wrap:wrap;gap:8px">${present.map(r=>`<span style="background:#e8f5ee;color:var(--present);border:1px solid #b8dfc9;border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span>${r.note==='승인지각'?' 📅':''}</span>`).join('')}</div></div>`;
+  if(absentSched.length) html+=`<div style="margin-bottom:16px"><div style="font-weight:700;color:var(--absent);margin-bottom:8px">❌ 결석(승인) — ${absentSched.length}명</div><div style="display:flex;flex-wrap:wrap;gap:8px">${absentSched.map(r=>`<span style="background:#fde8e8;color:var(--absent);border:1px solid #f5b8b8;border-radius:20px;padding:4px 12px;font-size:13px">${r.name}</span>`).join('')}</div></div>`;
+  if(unmatched.length) html+=`<div style="margin-bottom:16px"><div style="font-weight:700;color:var(--muted);margin-bottom:8px">❓ 명단 외 — ${unmatched.length}명</div><div style="display:flex;flex-wrap:wrap;gap:8px">${unmatched.map(r=>`<span style="background:#f0f4f8;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span></span>`).join('')}</div></div>`;
   if(!present.length&&!late.length) html='<div style="text-align:center;padding:30px;color:var(--muted)">📭 매칭된 학생이 없습니다</div>';
-
   document.getElementById('xlsxResult').innerHTML=html;
   document.getElementById('xlsxMo').classList.add('open');
 }
 
 function applyXlsx(){
-  if(!xlsxParsed.present && !xlsxParsed.before8) return;
-  const d=new Date(curDate+'T00:00:00');
-  if(d.getDay()===0){showToast('일요일은 자율등원일입니다.');return;}
-  att[curDate]={};
-  const normName=n=>n.replace(/\([^)]*\)/g,'').replace(/\s/g,'').trim();
-  let cntP=0,cntL=0,cntA=0;
-
-  (xlsxParsed.present||[]).forEach(r=>{
-    const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name));
-    if(s){att[curDate][s.id]={status:'present',time:r.time};cntP++;}
-  });
-  (xlsxParsed.late||[]).forEach(r=>{
-    const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name));
-    if(s){att[curDate][s.id]={status:'late',time:r.time};cntL++;}
-  });
-  (xlsxParsed.absentSched||[]).forEach(r=>{
-    const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name));
-    if(s){att[curDate][s.id]={status:'absent_approved',time:''};cntA++;}
-  });
-
+  if(!xlsxParsed.present&&!xlsxParsed.before8) return;
+  const d=new Date(curDate+'T00:00:00'); if(d.getDay()===0){showToast('일요일은 자율등원일입니다.');return;}
+  att[curDate]={}; const normName=n=>n.replace(/\([^)]*\)/g,'').replace(/\s/g,'').trim(); let cntP=0,cntL=0,cntA=0;
+  (xlsxParsed.present||[]).forEach(r=>{const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name));if(s){att[curDate][s.id]={status:'present',time:r.time};cntP++;}});
+  (xlsxParsed.late||[]).forEach(r=>{const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name));if(s){att[curDate][s.id]={status:'late',time:r.time};cntL++;}});
+  (xlsxParsed.absentSched||[]).forEach(r=>{const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name));if(s){att[curDate][s.id]={status:'absent_approved',time:''};cntA++;}});
   save(); render(); stats(); closeXlsxMo();
   showToast(`✅ 출석 ${cntP}명 / ⚠️ 무단지각 ${cntL}명 / ❌ 결석 ${cntA}명 처리 완료!`);
 }
 function closeXlsxMo(){ document.getElementById('xlsxMo').classList.remove('open'); }
 
-// ── 사유제출 CSV 파싱 ─────────────────────────────────
-let reasonData = {};
-
+let reasonData={};
 function handleReasonCsv(input){
-  const file = input.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = function(e){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(e){
     try{
-      const lines = e.target.result.split('\n');
-      const parsed = {};
-      for(let i=1; i<lines.length; i++){
-        const cols = parseCSVLine(lines[i].trim());
-        if(cols.length < 8) continue;
-        const name     = (cols[0]||'').trim();
-        const location = (cols[1]||'').trim();
-        const type     = (cols[3]||'').trim();
-        const approved = (cols[4]||'').trim();
-        const depart   = (cols[5]||'').replace(/'/g,'').trim();
-        const arrive   = (cols[6]||'').replace(/'/g,'').trim();
-        const reason   = (cols[7]||'').trim();
-
-        if(!name) continue;
-        if(approved !== '승인완료') continue;
-
-        if(!parsed[name]){
-          parsed[name] = { type, depart, arrive, reason, approved };
-        } else {
-          if(type === '지각' || type === '결석') {
-            parsed[name] = { type, depart, arrive, reason, approved };
-          }
-        }
+      const lines=e.target.result.split('\n'); const parsed={};
+      for(let i=1;i<lines.length;i++){
+        const cols=parseCSVLine(lines[i].trim()); if(cols.length<8) continue;
+        const name=(cols[0]||'').trim(), type=(cols[3]||'').trim(), approved=(cols[4]||'').trim();
+        const depart=(cols[5]||'').replace(/'/g,'').trim(), arrive=(cols[6]||'').replace(/'/g,'').trim(), reason=(cols[7]||'').trim();
+        if(!name||approved!=='승인완료') continue;
+        if(!parsed[name]) parsed[name]={type,depart,arrive,reason,approved};
+        else if(type==='지각'||type==='결석') parsed[name]={type,depart,arrive,reason,approved};
       }
-      reasonData = parsed;
-      const cnt = Object.keys(reasonData).length;
-
-      const lateList  = Object.entries(reasonData).filter(([,v])=>v.type==='지각');
-      const absList   = Object.entries(reasonData).filter(([,v])=>v.type==='결석');
-      const earlyList = Object.entries(reasonData).filter(([,v])=>v.type==='조기하원');
-      const outList   = Object.entries(reasonData).filter(([,v])=>v.type==='외출');
-
-      let html = `<div style="font-size:13px;color:var(--muted);margin-bottom:16px">총 ${cnt}명 사유제출 (승인완료 기준)</div>`;
-
-      if(lateList.length) html += `<div style="margin-bottom:14px">
-        <div style="font-weight:700;color:var(--late);margin-bottom:8px">⏰ 사유지각 — ${lateList.length}명</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">${lateList.map(([name,v])=>
-          `<span style="background:#fff3e0;color:var(--late);border:1px solid #f5d5a0;border-radius:20px;padding:4px 12px;font-size:13px">
-            ${name} <span style="opacity:.7;font-size:11px">${v.arrive!=='-'?v.arrive+' 도착':''} ${v.reason}</span>
-          </span>`).join('')}
-        </div></div>`;
-
-      if(absList.length) html += `<div style="margin-bottom:14px">
-        <div style="font-weight:700;color:var(--absent);margin-bottom:8px">❌ 사유결석 — ${absList.length}명</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">${absList.map(([name,v])=>
-          `<span style="background:#fde8e8;color:var(--absent);border:1px solid #f5b8b8;border-radius:20px;padding:4px 12px;font-size:13px">
-            ${name} <span style="opacity:.7;font-size:11px">${v.reason}</span>
-          </span>`).join('')}
-        </div></div>`;
-
-      if(earlyList.length) html += `<div style="margin-bottom:14px">
-        <div style="font-weight:700;color:#7c3aed;margin-bottom:8px">🚪 조기하원 — ${earlyList.length}명</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">${earlyList.map(([name,v])=>
-          `<span style="background:#f3e8ff;color:#7c3aed;border:1px solid #d8b4fe;border-radius:20px;padding:4px 12px;font-size:13px">
-            ${name} <span style="opacity:.7;font-size:11px">${v.depart!=='-'?v.depart+' 출발':''} ${v.reason}</span>
-          </span>`).join('')}
-        </div></div>`;
-
-      if(outList.length) html += `<div style="margin-bottom:14px">
-        <div style="font-weight:700;color:#1a73e8;margin-bottom:8px">🚶 외출 — ${outList.length}명</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px">${outList.map(([name,v])=>
-          `<span style="background:#e8f0fe;color:#1a73e8;border:1px solid #b8d0f8;border-radius:20px;padding:4px 12px;font-size:13px">
-            ${name} <span style="opacity:.7;font-size:11px">${v.depart!=='-'?v.depart:''}~${v.arrive!=='-'?v.arrive:''} ${v.reason}</span>
-          </span>`).join('')}
-        </div></div>`;
-
-      document.getElementById('reasonResult').innerHTML = html;
+      reasonData=parsed; const cnt=Object.keys(reasonData).length;
+      const lateList=Object.entries(reasonData).filter(([,v])=>v.type==='지각');
+      const absList=Object.entries(reasonData).filter(([,v])=>v.type==='결석');
+      const earlyList=Object.entries(reasonData).filter(([,v])=>v.type==='조기하원');
+      const outList=Object.entries(reasonData).filter(([,v])=>v.type==='외출');
+      let html=`<div style="font-size:13px;color:var(--muted);margin-bottom:16px">총 ${cnt}명 사유제출 (승인완료 기준)</div>`;
+      if(lateList.length) html+=`<div style="margin-bottom:14px"><div style="font-weight:700;color:var(--late);margin-bottom:8px">⏰ 사유지각 — ${lateList.length}명</div><div style="display:flex;flex-wrap:wrap;gap:6px">${lateList.map(([name,v])=>`<span style="background:#fff3e0;color:var(--late);border:1px solid #f5d5a0;border-radius:20px;padding:4px 12px;font-size:13px">${name} <span style="opacity:.7;font-size:11px">${v.arrive!=='-'?v.arrive+' 도착':''} ${v.reason}</span></span>`).join('')}</div></div>`;
+      if(absList.length) html+=`<div style="margin-bottom:14px"><div style="font-weight:700;color:var(--absent);margin-bottom:8px">❌ 사유결석 — ${absList.length}명</div><div style="display:flex;flex-wrap:wrap;gap:6px">${absList.map(([name,v])=>`<span style="background:#fde8e8;color:var(--absent);border:1px solid #f5b8b8;border-radius:20px;padding:4px 12px;font-size:13px">${name} <span style="opacity:.7;font-size:11px">${v.reason}</span></span>`).join('')}</div></div>`;
+      if(earlyList.length) html+=`<div style="margin-bottom:14px"><div style="font-weight:700;color:#7c3aed;margin-bottom:8px">🚪 조기하원 — ${earlyList.length}명</div><div style="display:flex;flex-wrap:wrap;gap:6px">${earlyList.map(([name,v])=>`<span style="background:#f3e8ff;color:#7c3aed;border:1px solid #d8b4fe;border-radius:20px;padding:4px 12px;font-size:13px">${name}</span>`).join('')}</div></div>`;
+      if(outList.length) html+=`<div style="margin-bottom:14px"><div style="font-weight:700;color:#1a73e8;margin-bottom:8px">🚶 외출 — ${outList.length}명</div><div style="display:flex;flex-wrap:wrap;gap:6px">${outList.map(([name,v])=>`<span style="background:#e8f0fe;color:#1a73e8;border:1px solid #b8d0f8;border-radius:20px;padding:4px 12px;font-size:13px">${name}</span>`).join('')}</div></div>`;
+      document.getElementById('reasonResult').innerHTML=html;
       document.getElementById('reasonMo').classList.add('open');
       showToast(`📋 사유제출 ${cnt}명 로드 완료!`);
     } catch(err){ showToast('❌ 파일 파싱 오류: '+err.message); }
     input.value='';
   };
-  reader.readAsText(file, 'UTF-8');
+  reader.readAsText(file,'UTF-8');
 }
 
 function applyReason(){
-  if(!Object.keys(reasonData).length){ showToast('사유제출 데이터 없음'); return; }
-  const normName = n => n.replace(/\([^)]*\)/g,'').replace(/\s/g,'').trim();
-  let cntLate=0, cntAbs=0, cntEarly=0;
-
-  Object.entries(reasonData).forEach(([name, v])=>{
-    const student = students.find(s=>s.name===name) ||
-                    students.find(s=>normName(s.name)===normName(name));
+  if(!Object.keys(reasonData).length){showToast('사유제출 데이터 없음');return;}
+  const normName=n=>n.replace(/\([^)]*\)/g,'').replace(/\s/g,'').trim();
+  let cntLate=0,cntAbs=0,cntEarly=0;
+  Object.entries(reasonData).forEach(([name,v])=>{
+    const student=students.find(s=>s.name===name)||students.find(s=>normName(s.name)===normName(name));
     if(!student) return;
     if(!att[curDate]) att[curDate]={};
-
-    if(v.type==='지각'){
-      const cur = getSt(student.id);
-      if(cur==='none'){ att[curDate][student.id]={status:'late_approved',time:v.arrive||''}; cntLate++; }
-    } else if(v.type==='결석'){
-      att[curDate][student.id]={status:'absent_approved',time:''}; cntAbs++;
-    } else if(v.type==='조기하원'){
-      cntEarly++;
-    }
+    if(v.type==='지각'){const cur=getSt(student.id);if(cur==='none'){att[curDate][student.id]={status:'late_approved',time:v.arrive||''};cntLate++;}}
+    else if(v.type==='결석'){att[curDate][student.id]={status:'absent_approved',time:''};cntAbs++;}
+    else if(v.type==='조기하원'){cntEarly++;}
   });
-
   save(); render(); stats(); closeReasonMo();
   showToast(`⏰ 사유지각 ${cntLate}명 / ❌ 사유결석 ${cntAbs}명 / 🚪 조기하원 ${cntEarly}명 적용!`);
 }
-
 function closeReasonMo(){ document.getElementById('reasonMo').classList.remove('open'); }
 document.addEventListener('click',e=>{ if(e.target.id==='reasonMo') closeReasonMo(); });
 
-// ── 구글 시트 저장 ────────────────────────────────────
 async function saveToSheet(){
-  const _d=new Date(curDate+'T00:00:00');
-  if(_d.getDay()===0){showToast('일요일은 저장하지 않습니다.');return;}
+  const _d=new Date(curDate+'T00:00:00'); if(_d.getDay()===0){showToast('일요일은 저장하지 않습니다.');return;}
 
-  const statusTextMap={
-    'present':'출석','late':'무단지각','late_approved':'사유지각',
-    'absent':'무단결석','absent_approved':'사유결석','none':'미확인'
-  };
+  // ✅ 저장 전 기타일정 자동반영 (미확인 학생만)
+  if(!att[curDate]) att[curDate]={};
+  let extraCnt=0;
+  students.forEach(s=>{
+    if(getSt(s.id)!=='none') return; // 이미 설정된 학생은 건드리지 않음
+    const entry=scheduleData[s.name];
+    if(!entry||!entry.extra) return;
+    const result=parseExtraForDate(entry.extra,curDate);
+    if(!result) return;
+    att[curDate][s.id]={status:result.status,time:''};
+    extraCnt++;
+  });
+  if(extraCnt>0){ save(); render(); stats(); }
+
+  const statusTextMap={'present':'출석','late':'무단지각','late_approved':'사유지각','absent':'무단결석','absent_approved':'사유결석','none':'미확인'};
   const statusColorMap={
-    'present':  {row:'#f0fff4', cell:'#c8f7d8', font:'#1e7e34'},
-    'late':     {row:'#fff8f0', cell:'#ffe0b2', font:'#e65100'},
-    'late_approved': {row:'#fffde7', cell:'#fff3cd', font:'#856404'},
-    'absent':   {row:'#fff5f5', cell:'#ffd6d6', font:'#c0392b'},
-    'absent_approved': {row:'#fff8ee', cell:'#f5d5a0', font:'#7a3800'},
-    'none':     {row:'#ffffff', cell:'#e0e0e0', font:'#555555'}
+    'present':{row:'#f0fff4',cell:'#c8f7d8',font:'#1e7e34'},'late':{row:'#fff8f0',cell:'#ffe0b2',font:'#e65100'},
+    'late_approved':{row:'#fffde7',cell:'#fff3cd',font:'#856404'},'absent':{row:'#fff5f5',cell:'#ffd6d6',font:'#c0392b'},
+    'absent_approved':{row:'#fff8ee',cell:'#f5d5a0',font:'#7a3800'},'none':{row:'#ffffff',cell:'#e0e0e0',font:'#555555'}
   };
-
+  // ✅ 미확인 제외, 기타란 비고도 schedNote에 포함
   const records=students.map(s=>{
     const si=getScheduleForDate(s.name,curDate);
+    const entry=scheduleData[s.name];
+    const extraResult=entry&&entry.extra?parseExtraForDate(entry.extra,curDate):null;
     const st=getSt(s.id);
     const color=statusColorMap[st]||statusColorMap['none'];
-    return {
-      name:s.name,
-      status:st,
-      statusText:statusTextMap[st]||'미확인',
-      time:getTime(s.id),
-      schedNote:si?si.dayText:'',
-      rowColor:color.row,
-      cellColor:color.cell,
-      fontColor:color.font
-    };
-  });
+    let schedNote=si?si.dayText:'';
+    if(extraResult) schedNote=(schedNote?schedNote+' / ':'')+'[기타] '+extraResult.label;
+    return {name:s.name,status:st,statusText:statusTextMap[st]||'미확인',time:getTime(s.id),schedNote,rowColor:color.row,cellColor:color.cell,fontColor:color.font};
+  }).filter(r=>r.status!=='none');  // ✅ 미확인 제외
 
-  const d=new Date(curDate+'T00:00:00');
-  const sheetName=(d.getMonth()+1)+'월7층출결';
+  const d=new Date(curDate+'T00:00:00'), sheetName=(d.getMonth()+1)+'월7층출결';
   const btn=document.getElementById('sheetBtn'); btn.disabled=true; btn.textContent='☁️ 저장 중...';
   try{
-    const saveUrl=GAS_URL.split('?')[0];
-    const res=await fetch(saveUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'saveAttendance7f',date:curDate,floor:'7f',sheetName:sheetName,records})});
+    const res=await fetch(GAS_URL.split('?')[0],{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'saveAttendance7f',date:curDate,floor:'7f',sheetName,records})});
     const json=await res.json();
     if(json.status==='ok') showToast('☁️ '+sheetName+' 시트에 저장됐습니다!');
     else throw new Error('저장 실패');
@@ -1157,15 +937,11 @@ async function saveToSheet(){
   finally{ btn.disabled=false; btn.textContent='☁️ 시트 저장'; }
 }
 
-// ── 유틸 ──────────────────────────────────────────────
-function save(){ localStorage.setItem(SK, JSON.stringify(att)); }
-
-// ✅ 수정: show/hide를 명시적 display 값으로 처리
+function save(){ localStorage.setItem(SK,JSON.stringify(att)); }
 function show(id){ document.getElementById(id).style.display='flex'; }
 function hide(id){ document.getElementById(id).style.display='none'; }
 function showMain(){ document.getElementById('scMain').style.display='block'; }
 function hideMain(){ document.getElementById('scMain').style.display='none'; }
-
 let tt;
 function showToast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('show'),3500); }
 

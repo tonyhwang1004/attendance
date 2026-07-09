@@ -494,7 +494,7 @@ async function loadStudents(){
   // 백그라운드에서 최신 명단 fetch (최대 3회 재시도)
   for(let attempt=1; attempt<=3; attempt++){
     try{
-      setMsg(attempt>1 ? `재시도 중... (${attempt}/3)` : '구글 시트 연결 중...');
+      if(students.length===0) setMsg(attempt>1 ? `재시도 중... (${attempt}/3)` : '구글 시트 연결 중...');
       const controller=new AbortController();
       const timeout=setTimeout(()=>controller.abort(), 12000); // 12초로 늘림
       const res=await fetch(GAS_URL+'?t='+Date.now(), {signal:controller.signal}); // 캐시 방지
@@ -532,7 +532,8 @@ async function loadStudents(){
 
 function showError(msg){
   // 연결 실패 시 조용히 로딩 화면만 숨김 (오류 팝업 표시 안 함)
-  hide('scLoad');
+  const el = document.getElementById('scLoad');
+  if(el) el.style.display = 'none';
   showToast('⚠️ 명단 연결 실패 — 🔄 명단 새로고침을 눌러주세요');
 }
 function setMsg(t){ const e=document.getElementById('loadMsg'); if(e) e.textContent=t; }

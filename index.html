@@ -919,20 +919,30 @@ async function saveToSheet(){
     if(dayText.includes('결석')){
       att[curDate][s.id]={status:'absent_approved',time:''};
       autoCnt++;
-    } else if(dayText.includes('지각')){
-      // 지각 시간 추출
-      const tm=dayText.match(/지각\s*(\d{1,2})[:\s시]?(\d{0,2})/);
+    } else {
+      // ✅ 등원 시간 먼저 추출 (등원이 있으면 출석 우선)
       let timeStr='';
-      if(tm){ const h=tm[1].padStart(2,'0'), m=(tm[2]||'00').padStart(2,'0'); timeStr=h+':'+m; }
-      att[curDate][s.id]={status:'late_approved',time:timeStr};
-      autoCnt++;
-    } else if(dayText.includes('등원')||dayText.includes('하원')||dayText.includes('조퇴')){
-      // 등원/하원 시간 추출
-      const tm=dayText.match(/(?:등원|지각)\s*(\d{1,2})[:\s시]?(\d{0,2})/);
-      let timeStr='';
-      if(tm){ const h=tm[1].padStart(2,'0'), m=(tm[2]||'00').padStart(2,'0'); timeStr=h+':'+m; }
-      att[curDate][s.id]={status:'present',time:timeStr};
-      autoCnt++;
+      const tmEnterBefore=dayText.match(/(\d{1,2})시(\d{0,2})분?\s*등원/);   // "8시 등원", "8시15분 등원"
+      const tmEnterAfter=dayText.match(/등원\s*(\d{1,2})[시:]\s*(\d{0,2})/); // "등원8시", "등원8:00"
+      const tmLateBefore=dayText.match(/(\d{1,2})시(\d{0,2})분?\s*지각/);    // "10시 지각", "9시30분 지각"
+      const tmLateAfter=dayText.match(/지각\s*(\d{1,2})[시:]\s*(\d{0,2})/);  // "지각8시", "지각8:00"
+
+      if(dayText.includes('등원')){
+        // 출석: 등원 시간 추출
+        if(tmEnterBefore){ const h=tmEnterBefore[1].padStart(2,'0'), m=(tmEnterBefore[2]||'00').padStart(2,'0'); timeStr=h+':'+m; }
+        else if(tmEnterAfter){ const h=tmEnterAfter[1].padStart(2,'0'), m=(tmEnterAfter[2]||'00').padStart(2,'0'); timeStr=h+':'+m; }
+        att[curDate][s.id]={status:'present',time:timeStr};
+        autoCnt++;
+      } else if(dayText.includes('지각')){
+        // 지각: 지각 시간 추출
+        if(tmLateBefore){ const h=tmLateBefore[1].padStart(2,'0'), m=(tmLateBefore[2]||'00').padStart(2,'0'); timeStr=h+':'+m; }
+        else if(tmLateAfter){ const h=tmLateAfter[1].padStart(2,'0'), m=(tmLateAfter[2]||'00').padStart(2,'0'); timeStr=h+':'+m; }
+        att[curDate][s.id]={status:'late_approved',time:timeStr};
+        autoCnt++;
+      } else if(dayText.includes('하원')||dayText.includes('조퇴')){
+        att[curDate][s.id]={status:'present',time:''};
+        autoCnt++;
+      }
     }
   });
   if(autoCnt>0){ save(); render(); stats(); }

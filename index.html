@@ -466,6 +466,8 @@ async function reload(){ await loadStudents(); }
 
 async function loadStudents(){
   show('scLoad'); hideMain(); setMsg('구글 시트 연결 중...');
+
+  // 정기일정 복원
   const savedSched=localStorage.getItem(SK_SCHED);
   if(savedSched){
     try{ scheduleData=JSON.parse(savedSched); }catch(e){}
@@ -474,28 +476,55 @@ async function loadStudents(){
       document.getElementById('schedIndicator').classList.add('active');
     }
   }
+
   const backup=localStorage.getItem(SK+'_students');
-  try{
-    const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),8000);
-    const res=await fetch(GAS_URL,{signal:controller.signal});
-    clearTimeout(timeout);
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const json=await res.json();
-    if(json.status==='ok'&&Array.isArray(json.students)&&json.students.length>0){
-      students=json.students.map((name,i)=>({id:'s'+i,num:String(i+1),name:name.toString().trim()})).filter(s=>s.name);
-      localStorage.setItem(SK+'_students',JSON.stringify(students));
-      startApp(); showToast(`✅ ${students.length}명 불러왔습니다!`); return;
-    }
-    if(json.status==='ok'&&(!json.students||json.students.length===0)) throw new Error('명단이 비어있습니다');
-    throw new Error(json.message||'알 수 없는 오류');
-  } catch(e){
-    const isTimeout=e.name==='AbortError';
-    if(backup){
-      try{ students=JSON.parse(backup); startApp(); showToast(isTimeout?'⏱ 연결 시간 초과 — 저장된 명단으로 실행 중':'⚠️ 오프라인 모드 (저장된 명단)'); }
-      catch(pe){ showError('저장된 명단을 불러오는데 실패했습니다.<br>인터넷 연결 후 새로고침 해주세요.'); }
-    } else {
-      showError(isTimeout?'구글 시트 응답 시간이 초과됐습니다.':e.message);
+
+  // 백업이 있으면 먼저 오프라인으로 앱 실행 (빠른 시작)
+  if(backup){
+    try{
+      students=JSON.parse(backup);
+      if(students.length>0){
+        startApp();
+        showToast('⏳ 저장된 명단으로 시작 중... 백그라운드에서 최신 명단 불러오는 중');
+      }
+    }catch(e){ students=[]; }
+  }
+
+  // 백그라운드에서 최신 명단 fetch (최대 3회 재시도)
+  for(let attempt=1; attempt<=3; attempt++){
+    try{
+      setMsg(attempt>1 ? `재시도 중... (${attempt}/3)` : '구글 시트 연결 중...');
+      const controller=new AbortController();
+      const timeout=setTimeout(()=>controller.abort(), 12000); // 12초로 늘림
+      const res=await fetch(GAS_URL+'?t='+Date.now(), {signal:controller.signal}); // 캐시 방지
+      clearTimeout(timeout);
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      const json=await res.json();
+      if(json.status==='ok'&&Array.isArray(json.students)&&json.students.length>0){
+        students=json.students.map((name,i)=>({id:'s'+i,num:String(i+1),name:name.toString().trim()})).filter(s=>s.name);
+        localStorage.setItem(SK+'_students',JSON.stringify(students));
+        startApp();
+        showToast(`✅ ${students.length}명 불러왔습니다!`);
+        return;
+      }
+      if(json.status==='ok'&&(!json.students||json.students.length===0)) throw new Error('명단이 비어있습니다 (구글 시트 확인 필요)');
+      throw new Error(json.message||'알 수 없는 응답');
+    } catch(e){
+      const isTimeout=e.name==='AbortError';
+      console.warn(`명단 로드 실패 (${attempt}회차):`, e.message);
+      if(attempt<3){
+        await new Promise(r=>setTimeout(r,2000)); // 2초 대기 후 재시도
+        continue;
+      }
+      // 3회 모두 실패
+      if(students.length>0){
+        // 백업 명단으로 이미 실행 중이면 토스트만 (오류 화면 표시 안 함)
+        showToast('⚠️ 최신 명단 불러오기 실패 — 저장된 명단으로 실행 중');
+        hide('scLoad'); showMain(); // 로딩 화면 숨기고 메인 표시 유지
+      } else {
+        // 백업도 없을 때만 오류 화면 표시
+        showError(`구글 시트 연결에 실패했습니다.<br><small style="color:#999">${isTimeout?'응답 시간 초과':e.message}</small><br><br><small style="color:#aaa">Apps Script 재배포 후 다시 시도해주세요.</small>`);
+      }
     }
   }
 }

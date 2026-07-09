@@ -496,8 +496,8 @@ async function loadStudents(){
     try{
       if(students.length===0) setMsg(attempt>1 ? `재시도 중... (${attempt}/3)` : '구글 시트 연결 중...');
       const controller=new AbortController();
-      const timeout=setTimeout(()=>controller.abort(), 12000); // 12초로 늘림
-      const res=await fetch(GAS_URL+'?t='+Date.now(), {signal:controller.signal}); // 캐시 방지
+      const timeout=setTimeout(()=>controller.abort(), 20000); // 20초
+      const res=await fetch(GAS_URL, {signal:controller.signal});
       clearTimeout(timeout);
       if(!res.ok) throw new Error('HTTP '+res.status);
       const json=await res.json();

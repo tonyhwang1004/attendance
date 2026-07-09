@@ -420,7 +420,8 @@ function checkExtraBtn() {
     const entry = scheduleData[s.name];
     return entry && entry.extra && parseExtraForDate(entry.extra, curDate);
   });
-  document.getElementById('extraBtn').style.display = hasExtra ? 'inline-flex' : 'none';
+  const eb=document.getElementById('extraBtn');
+  if(eb) eb.style.display = hasExtra ? 'inline-flex' : 'none';
 }
 
 function clearSchedule(){
@@ -428,7 +429,8 @@ function clearSchedule(){
   localStorage.removeItem(SK_SCHED);
   document.getElementById('schedBanner').classList.remove('show');
   document.getElementById('schedIndicator').classList.remove('active');
-  document.getElementById('extraBtn').style.display='none';
+  const eb=document.getElementById('extraBtn');
+  if(eb) eb.style.display='none';
   render();
   showToast('🗑 정기일정이 초기화되었습니다');
 }

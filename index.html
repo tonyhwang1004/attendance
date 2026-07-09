@@ -466,39 +466,45 @@ function parseNoteTags(schedInfo){
 async function reload(){ await loadStudents(); }
 
 async function loadStudents(){
-  show('scLoad'); hideMain(); setMsg('구글 시트 연결 중...');
-
   // 정기일정 복원
   const savedSched=localStorage.getItem(SK_SCHED);
   if(savedSched){
     try{ scheduleData=JSON.parse(savedSched); }catch(e){}
     if(Object.keys(scheduleData).length>0){
       showSchedBanner(`정기일정 ${Object.keys(scheduleData).length}명 복원됨`);
-      document.getElementById('schedIndicator').classList.add('active');
+      const si=document.getElementById('schedIndicator');
+      if(si) si.classList.add('active');
     }
   }
 
+  // 백업 명단이 있으면 즉시 앱 실행
   const backup=localStorage.getItem(SK+'_students');
-
-  // 백업이 있으면 먼저 오프라인으로 앱 실행 (빠른 시작)
+  let startedFromBackup=false;
   if(backup){
     try{
-      students=JSON.parse(backup);
-      if(students.length>0){
+      const parsed=JSON.parse(backup);
+      if(parsed&&parsed.length>0){
+        students=parsed;
         startApp();
-        showToast('⏳ 저장된 명단으로 시작 중... 백그라운드에서 최신 명단 불러오는 중');
+        startedFromBackup=true;
       }
-    }catch(e){ students=[]; }
+    }catch(e){}
   }
 
-  // 백그라운드에서 최신 명단 fetch (최대 3회 재시도)
+  if(!startedFromBackup){
+    const sl=document.getElementById('scLoad');
+    if(sl) sl.style.display='flex';
+    hideMain();
+    setMsg('구글 시트 연결 중...');
+  }
+
+  // GAS에서 최신 명단 fetch (최대 3회)
   for(let attempt=1; attempt<=3; attempt++){
     try{
-      if(students.length===0) setMsg(attempt>1 ? `재시도 중... (${attempt}/3)` : '구글 시트 연결 중...');
       const controller=new AbortController();
-      const timeout=setTimeout(()=>controller.abort(), 20000); // 20초
+      const tid=setTimeout(()=>controller.abort(), 20000);
       const res=await fetch(GAS_URL, {signal:controller.signal});
-      clearTimeout(timeout);
+      clearTimeout(tid);
       if(!res.ok) throw new Error('HTTP '+res.status);
       const json=await res.json();
       if(json.status==='ok'&&Array.isArray(json.students)&&json.students.length>0){
@@ -508,23 +514,17 @@ async function loadStudents(){
         showToast(`✅ ${students.length}명 불러왔습니다!`);
         return;
       }
-      if(json.status==='ok'&&(!json.students||json.students.length===0)) throw new Error('명단이 비어있습니다 (구글 시트 확인 필요)');
-      throw new Error(json.message||'알 수 없는 응답');
+      throw new Error('명단 없음');
     } catch(e){
-      const isTimeout=e.name==='AbortError';
-      console.warn(`명단 로드 실패 (${attempt}회차):`, e.message);
-      if(attempt<3){
-        await new Promise(r=>setTimeout(r,2000)); // 2초 대기 후 재시도
-        continue;
-      }
-      // 3회 모두 실패
-      if(students.length>0){
-        // 백업 명단으로 이미 실행 중이면 토스트만 (오류 화면 표시 안 함)
-        showToast('⚠️ 최신 명단 불러오기 실패 — 저장된 명단으로 실행 중');
-        hide('scLoad'); showMain(); // 로딩 화면 숨기고 메인 표시 유지
-      } else {
-        // 백업도 없을 때만 오류 화면 표시
-        showError(`구글 시트 연결에 실패했습니다.<br><small style="color:#999">${isTimeout?'응답 시간 초과':e.message}</small><br><br><small style="color:#aaa">Apps Script 재배포 후 다시 시도해주세요.</small>`);
+      if(attempt<3){ await new Promise(r=>setTimeout(r,2000)); continue; }
+      // 3회 실패
+      if(startedFromBackup){
+        showToast('⚠️ 최신 명단 갱신 실패 — 저장된 명단으로 실행 중');
+      } else if(students.length===0){
+        showToast('❌ 명단을 불러오지 못했습니다. 🔄 명단 새로고침을 눌러주세요.');
+        const sl=document.getElementById('scLoad');
+        if(sl) sl.style.display='none';
+        showMain();
       }
     }
   }

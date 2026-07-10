@@ -1003,8 +1003,26 @@ async function saveToSheet(){
   try{
     const res=await fetch(GAS_URL.split('?')[0],{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({action:'saveAttendance7f',date:curDate,floor:'7f',sheetName,records})});
     const json=await res.json();
-    if(json.status==='ok') showToast('☁️ '+sheetName+' 시트에 저장됐습니다!');
-    else throw new Error('저장 실패');
+    if(json.status==='ok'){
+      showToast('☁️ '+sheetName+' 시트에 저장됐습니다!');
+
+      // ✅ 무단결석/무단지각 학생 벌점 자동 부여
+      const penaltyRecords = records.filter(r => r.status === 'absent' || r.status === 'late');
+      if(penaltyRecords.length > 0){
+        try{
+          const SERVER_URL = 'https://asia-northeast3-kimsmom-reading-room.cloudfunctions.net/api'; // Firebase Functions
+          await fetch(SERVER_URL + '/api/penalty/auto', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ date: curDate, records: penaltyRecords.map(r=>({name:r.name,status:r.status})) })
+          });
+          const penaltyCnt = penaltyRecords.length;
+          showToast(`⚠️ 무단 ${penaltyCnt}명 벌점 자동 부여 완료`);
+        } catch(pe){
+          console.warn('벌점 API 연결 실패 (관리시스템 서버 확인):', pe.message);
+        }
+      }
+    } else throw new Error('저장 실패');
   }catch(e){ showToast('❌ 시트 저장 실패'); }
   finally{ btn.disabled=false; btn.textContent='☁️ 시트 저장'; }
 }

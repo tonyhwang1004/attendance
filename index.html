@@ -124,7 +124,7 @@
       <div class="logo">📋</div>
       <div>
         <h1><span>ATTEND</span>ANCE</h1>
-        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">김엄마독서실 7층 출결관리 · <b style="color:#fff">버전 10/15-3</b></div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">김엄마독서실 7층 출결관리 · <b style="color:#fff">버전 10/15-4</b></div>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -468,7 +468,30 @@ function parseNoteTags(schedInfo){
 
 async function reload(){ await loadStudents(); }
 
+/* 정기일정 — Project K 에 학생 190명 일정이 최신으로 있다 (학생이 고치고 승인된 것 포함).
+   예전에는 PC 마다 엑셀을 따로 올려야 했고, 안 올린 PC 에서는 정기지각 학생이
+   모두 무단지각(벌점)으로 잡혔다. 앱을 열 때마다 받아 온다. 실패하면 저장해 둔 것을 쓴다. */
+async function loadScheduleFromServer(){
+  try{
+    const c=new AbortController(); const t=setTimeout(()=>c.abort(),8000);
+    const r=await fetch('https://asia-northeast3-kimsmom-reading-room.cloudfunctions.net/api/schedule',{signal:c.signal});
+    clearTimeout(t);
+    const list=await r.json(); if(!Array.isArray(list)||!list.length) return false;
+    const m={};
+    list.forEach(x=>{ const n=String(x.name||'').trim(); if(!n) return;
+      m[n]={mon:x.mon||'',tue:x.tue||'',wed:x.wed||'',thu:x.thu||'',fri:x.fri||'',sat:x.sat||'',
+            extra:x.etc||'',approvalStatus:x.status||''}; });
+    scheduleData=m;
+    localStorage.setItem(SK_SCHED,JSON.stringify(m));
+    showSchedBanner(`정기일정 ${Object.keys(m).length}명 자동으로 불러옴`);
+    const si=document.getElementById('schedIndicator'); if(si) si.classList.add('active');
+    if(typeof render==='function'&&students.length){ render(); }
+    return true;
+  }catch(e){ console.warn('정기일정 자동 불러오기 실패 — 저장해 둔 것을 씁니다',e); return false; }
+}
+
 async function loadStudents(){
+  loadScheduleFromServer();
   // 정기일정 복원
   const savedSched=localStorage.getItem(SK_SCHED);
   if(savedSched){
@@ -874,6 +897,7 @@ function handleXlsx(input){
   const reader=new FileReader();
   reader.onload=async function(e){
     await loadIdMap();
+    if(!Object.keys(scheduleData||{}).length) await loadScheduleFromServer();
     try{
       let rows;
       if(isCsv){

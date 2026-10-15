@@ -124,7 +124,7 @@
       <div class="logo">📋</div>
       <div>
         <h1><span>ATTEND</span>ANCE</h1>
-        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">김엄마독서실 7층 출결관리</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">김엄마독서실 7층 출결관리 · <b style="color:#fff">버전 10/15-3</b></div>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -1002,7 +1002,14 @@ function processEnterRecords(enterRecords){
   });
   const um=xlsxParsed.unmatched;
   if(um.length) html+=`<div style="margin-bottom:14px"><div style="font-weight:700;color:var(--muted);margin-bottom:8px">❓ 명단 외 — ${um.length}명</div><div style="display:flex;flex-wrap:wrap;gap:6px">${um.map(r=>`<span style="background:#f0f4f8;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span></span>`).join('')}</div></div>`;
-  if(!result.some(x=>x.time)) html='<div style="text-align:center;padding:30px;color:var(--muted)">📭 매칭된 학생이 없습니다</div>';
+  if(!result.some(x=>x.time)){
+    // 왜 하나도 못 맞췄는지 보여 준다 — 파일에서 읽은 이름과 명단 이름을 나란히
+    const names=[...new Set(enterRecords.map(r=>r.name))];
+    html='<div style="text-align:center;padding:20px;color:var(--muted);line-height:1.7">📭 명단과 맞는 학생이 없습니다<br>'+
+      '<span style="font-size:13px">파일에서 입실 '+enterRecords.length+'건 · '+names.length+'명을 읽었습니다.<br>'+
+      '파일의 이름 예: '+(names.slice(0,8).join(', ')||'없음')+'<br>'+
+      '명단(앱_7층학생) 이름 예: '+students.slice(0,5).map(s=>s.name).join(', ')+' (총 '+students.length+'명)</span></div>';
+  }
   // 정기일정이 없으면 '13시 지각' 같은 학생도 무단지각이 된다 — 벌점이 붙기 전에 알린다
   if(!Object.keys(scheduleData||{}).length) html='<div style="background:#fff3cd;border:1px solid #f5d5a0;color:#7a4a00;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px;line-height:1.6"><b>⚠️ 정기일정이 올라와 있지 않습니다.</b><br>정기지각 학생도 모두 무단지각으로 잡힙니다. 「📅 정기일정 업로드」를 먼저 하고 다시 올려 주세요.</div>'+html;
   document.getElementById('xlsxResult').innerHTML=html;

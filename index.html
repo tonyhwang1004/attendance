@@ -124,7 +124,7 @@
       <div class="logo">📋</div>
       <div>
         <h1><span>ATTEND</span>ANCE</h1>
-        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">김엄마독서실 7층 출결관리 · <b style="color:#fff">버전 10/15-5</b></div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">김엄마독서실 7층 출결관리 · <b style="color:#fff">버전 10/15-6</b></div>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -148,7 +148,7 @@
           <input type="date" id="dInput" onchange="changeDate()">
         </div>
         <button class="btn btn-green" onclick="setAll('present')" title="아직 미확인인 학생만 출석으로 (지각·결석은 그대로)">✅ 나머지 출석</button>
-        <button class="btn btn-excel" onclick="autoAttendance(false)" id="autoBtn" title="Project K 가 1분마다 받아 둔 출입기록으로 바로 판정합니다">🔄 출입기록 불러오기</button>
+        <button class="btn btn-excel" onclick="autoAttendance(false,confirm('오늘 출결을 출입기록 기준으로 다시 판정합니다.\n\n[확인] 전부 다시 판정 (손으로 바꾼 것도 초기화)\n[취소] 손으로 바꾼 학생은 그대로 두고 나머지만'))" id="autoBtn" title="Project K 가 1분마다 받아 둔 출입기록으로 바로 판정합니다">🔄 출입기록 불러오기</button>
         <label class="btn btn-excel" style="cursor:pointer;opacity:.75" title="자동으로 안 될 때만">📂 출입기록 업로드<input type="file" id="xlsxInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleXlsx(this)"></label>
         <label class="btn btn-orange" style="cursor:pointer">📋 사유제출 업로드<input type="file" id="reasonInput" accept=".csv" style="display:none" onchange="handleReasonCsv(this)"></label>
         <label class="btn btn-sched" style="cursor:pointer">📅 정기일정 업로드<input type="file" id="schedInput" accept=".xlsx,.xls" style="display:none" onchange="handleScheduleXlsx(this)"></label>
@@ -774,7 +774,7 @@ function changeDate(){
        — 자동으로 넣은 칸에만 auto 표시를 하고, 다시 불러올 때 그 칸만 고친다
      · 오늘 화면을 열어 두면 3분마다 다시 불러온다 */
 let autoBusy=false, autoAt='';
-async function autoAttendance(silent){
+async function autoAttendance(silent,force){
   if(autoBusy||!students.length) return;
   const date=curDate;
   if(new Date(date+'T00:00:00').getDay()===0) return;
@@ -799,7 +799,7 @@ async function autoAttendance(silent){
     const day=att[date], cnt={};
     students.forEach(s=>{
       const cur=day[s.id];
-      if(cur&&!(typeof cur==='object'&&cur.auto)) return;   // 직원이 정한 것은 그대로
+      if(!force && cur&&!(typeof cur==='object'&&cur.auto)) return;   // 직원이 정한 것은 그대로
       const f=first[s.id], res=judge(s.name,f?f.m:null);
       if(res){ day[s.id]={status:res.status,time:f?f.time:'',note:res.note,auto:true}; cnt[res.status]=(cnt[res.status]||0)+1; }
       else if(cur) delete day[s.id];
@@ -1104,7 +1104,7 @@ function applyXlsx(){
   const cnt={};
   xlsxParsed.result.forEach(x=>{
     if(x.status==='none') return;
-    att[curDate][x.id]={status:x.status,time:x.time,note:x.note};
+    att[curDate][x.id]={status:x.status,time:x.time,note:x.note,auto:true};
     cnt[x.status]=(cnt[x.status]||0)+1;
   });
   save(); render(); stats(); closeXlsxMo();

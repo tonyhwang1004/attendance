@@ -124,7 +124,7 @@
       <div class="logo">📋</div>
       <div>
         <h1><span>ATTEND</span>ANCE</h1>
-        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">김엄마독서실 7층 출결관리 · <b style="color:#fff">버전 10/15-4</b></div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:2px">김엄마독서실 7층 출결관리 · <b style="color:#fff">버전 10/15-5</b></div>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -148,7 +148,8 @@
           <input type="date" id="dInput" onchange="changeDate()">
         </div>
         <button class="btn btn-green" onclick="setAll('present')" title="아직 미확인인 학생만 출석으로 (지각·결석은 그대로)">✅ 나머지 출석</button>
-        <label class="btn btn-excel" style="cursor:pointer">📂 출입기록 업로드<input type="file" id="xlsxInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleXlsx(this)"></label>
+        <button class="btn btn-excel" onclick="autoAttendance(false)" id="autoBtn" title="Project K 가 1분마다 받아 둔 출입기록으로 바로 판정합니다">🔄 출입기록 불러오기</button>
+        <label class="btn btn-excel" style="cursor:pointer;opacity:.75" title="자동으로 안 될 때만">📂 출입기록 업로드<input type="file" id="xlsxInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleXlsx(this)"></label>
         <label class="btn btn-orange" style="cursor:pointer">📋 사유제출 업로드<input type="file" id="reasonInput" accept=".csv" style="display:none" onchange="handleReasonCsv(this)"></label>
         <label class="btn btn-sched" style="cursor:pointer">📅 정기일정 업로드<input type="file" id="schedInput" accept=".xlsx,.xls" style="display:none" onchange="handleScheduleXlsx(this)"></label>
         <button class="btn btn-dim" onclick="reload()">🔄 명단 새로고침</button>
@@ -236,7 +237,8 @@ const SK_SCHED = 'att_7f_sched';
 let students=[], att={}, curDate=today(), xlsxParsed={};
 let scheduleData = {};
 
-function today(){ return new Date().toISOString().slice(0,10); }
+// 한국 시각 기준 오늘 — toISOString 은 UTC 라 오전 9시 전에는 어제 날짜가 됐다
+function today(){ return new Date(Date.now()+9*3600e3).toISOString().slice(0,10); }
 
 (function tick(){
   const n=new Date(), el=document.getElementById('clock');
@@ -490,8 +492,9 @@ async function loadScheduleFromServer(){
   }catch(e){ console.warn('정기일정 자동 불러오기 실패 — 저장해 둔 것을 씁니다',e); return false; }
 }
 
+let schedReady=null;
 async function loadStudents(){
-  loadScheduleFromServer();
+  schedReady=loadScheduleFromServer();
   // 정기일정 복원
   const savedSched=localStorage.getItem(SK_SCHED);
   if(savedSched){
@@ -571,6 +574,7 @@ function startApp(){
   if(!att[curDate]) att[curDate]={};
   document.getElementById('dInput').value=curDate;
   hide('scLoad'); showMain(); checkExtraBtn(); render(); stats();
+  autoAttendance(true);
 }
 
 function render(){
@@ -759,7 +763,60 @@ function changeDate(){
   const dow=new Date(curDate+'T00:00:00').getDay();
   if(dow===0) showToast('⚠️ 일요일은 자율등원일입니다.');
   checkExtraBtn(); render(); stats();
+  autoAttendance(true);
 }
+
+/* ═══ 출입기록 자동 반영 ═══
+   Project K 가 바이오스타에서 1분마다 받아 둔 출입기록(/attendance?date=)을 읽어
+   7층 입구로 들어온 첫 시각으로 판정한다. 파일을 올릴 필요가 없다.
+     · 이름은 Project K 가 카드번호로 이미 맞춰 준다 (김민서 · 김민서5 구분)
+     · 직원이 손으로 바꾼 학생(버튼 · 사유제출 · 파일 업로드)은 건드리지 않는다
+       — 자동으로 넣은 칸에만 auto 표시를 하고, 다시 불러올 때 그 칸만 고친다
+     · 오늘 화면을 열어 두면 3분마다 다시 불러온다 */
+let autoBusy=false, autoAt='';
+async function autoAttendance(silent){
+  if(autoBusy||!students.length) return;
+  const date=curDate;
+  if(new Date(date+'T00:00:00').getDay()===0) return;
+  autoBusy=true;
+  const btn=document.getElementById('autoBtn'); if(btn&&!silent) btn.textContent='🔄 불러오는 중…';
+  try{
+    if(schedReady) await schedReady;
+    const c=new AbortController(); const t=setTimeout(()=>c.abort(),25000);
+    const r=await fetch('https://asia-northeast3-kimsmom-reading-room.cloudfunctions.net/api/attendance?date='+date,{signal:c.signal});
+    clearTimeout(t);
+    const j=await r.json(); const rows=(j&&j.data)||[];
+    if(date!==curDate) return;                       // 그 사이 날짜를 바꿨으면 버린다
+    const first={};
+    rows.forEach(x=>{
+      if(x.dir!=='ENTER'||x.floor!=='7층') return;
+      const st=findStudent(String(x.name||'').trim()); if(!st) return;
+      const m=String(x.time||'').match(/(\d{1,2}):(\d{2})/); if(!m) return;
+      const v=+m[1]*60+ +m[2];
+      if(!first[st.id]||v<first[st.id].m) first[st.id]={m:v,time:m[1].padStart(2,'0')+':'+m[2]};
+    });
+    if(!att[date]) att[date]={};
+    const day=att[date], cnt={};
+    students.forEach(s=>{
+      const cur=day[s.id];
+      if(cur&&!(typeof cur==='object'&&cur.auto)) return;   // 직원이 정한 것은 그대로
+      const f=first[s.id], res=judge(s.name,f?f.m:null);
+      if(res){ day[s.id]={status:res.status,time:f?f.time:'',note:res.note,auto:true}; cnt[res.status]=(cnt[res.status]||0)+1; }
+      else if(cur) delete day[s.id];
+    });
+    save(); render(); stats();
+    autoAt=new Date().toTimeString().slice(0,5);
+    const parts=Object.keys(ST_TEXT).filter(k=>cnt[k]).map(k=>ST_TEXT[k]+' '+cnt[k]);
+    if(!silent) showToast('🔄 출입기록 반영 ('+autoAt+') — '+(parts.join(' · ')||'입실 기록 없음'));
+    if(btn) btn.textContent='🔄 출입기록 불러오기 · '+autoAt;
+  }catch(e){
+    console.warn('출입기록 자동 불러오기 실패',e);
+    if(btn) btn.textContent='🔄 출입기록 불러오기';
+    if(!silent) showToast('❌ 출입기록을 불러오지 못했습니다 — 「📂 출입기록 업로드」로 올려 주세요');
+  }finally{ autoBusy=false; }
+}
+// 오늘 화면을 열어 두면 3분마다 새로 반영한다
+setInterval(()=>{ if(!document.hidden && curDate===today()) autoAttendance(true); },3*60*1000);
 
 function openHist(){
   const c=document.getElementById('histC'), dates=Object.keys(att).sort().reverse();

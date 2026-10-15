@@ -802,6 +802,19 @@ function decodeText(buf){
   catch(e){ return new TextDecoder('euc-kr').decode(u8); }
 }
 
+/* 출입문 카드번호 → 명단 이름 — Project K 가 정기일정·출입시각으로 짝지어 둔 표.
+   출입문에는 '김민서' 로 찍히지만 명단에는 김민서 · 김민서5 가 따로 있다.
+   이름만으로는 가를 수 없어서 카드번호(118810 등)로 가른다. */
+let ID_MAP={};
+async function loadIdMap(){
+  try{
+    const c=new AbortController(); const t=setTimeout(()=>c.abort(),6000);
+    const r=await fetch('https://asia-northeast3-kimsmom-reading-room.cloudfunctions.net/api/settings/userIdMap',{signal:c.signal});
+    clearTimeout(t);
+    const j=await r.json(); if(j&&j.value) ID_MAP=j.value;
+  }catch(e){ console.warn('카드번호 표를 못 읽었습니다 — 이름으로만 맞춥니다',e); }
+}
+
 function accessFromRows(rows){
   const out={records:[],read:0,why:''};
   if(!rows.length){ out.why='파일이 비어 있습니다'; return out; }
@@ -822,6 +835,10 @@ function accessFromRows(rows){
   const cDate=col(/^(date|날짜|일시|시간)$/i), cUser=col(/^(user|사용자|이름)$/i);
   const cDev=col(/^(device|장치|장치명)$/i), cDoor=col(/^(door|출입문)$/i);
   const cEvt=col(/^(event|이벤트)$/i), cDir=col(/방향/);
+  // 7층 출결이므로 '7층 입문' 기록만 쓴다. (김엄마송도점_입문 은 8층 입구)
+  // 파일에 7층 장치가 하나도 없을 때만 모든 '입문' 을 쓴다.
+  const devOf=r=>[cDev,cDoor].filter(c=>c>=0).map(c=>String(r[c]||'')).join(' ');
+  const has7=rows.slice(hi+1).some(r=>/7층/.test(devOf(r)));
   for(let i=hi+1;i<rows.length;i++){
     const r=rows[i]; if(!r||!r.length) continue;
     out.read++;
@@ -829,10 +846,12 @@ function accessFromRows(rows){
     if(cEvt>=0 && !/authentication succeeded|인증 성공|access granted|출입 허가/i.test(evt)) continue;
     const dev=[cDev,cDoor].filter(c=>c>=0).map(c=>String(r[c]||'')).join(' ');
     if(cDir>=0){ const d=String(r[cDir]||'').toUpperCase(); if(d && d!=='ENTER' && !/입/.test(d)) continue; }
-    else if((cDev>=0||cDoor>=0) && !/입문|입실|entry/i.test(dev)) continue;
+    else if((cDev>=0||cDoor>=0) && (!/입문|입실|entry/i.test(dev) || (has7 && !/7층/.test(dev)))) continue;
     // 사용자 '133620(안예찬)' 또는 그냥 '안예찬'
     const u=String(r[cUser]||'').trim(); if(!u) continue;
-    const nm=(u.match(/\(([^)]+)\)/)||[null,u])[1].trim(); if(!nm) continue;
+    const idm=u.match(/^(\d+)\s*\(/);
+    let nm=(u.match(/\(([^)]+)\)/)||[null,u])[1].trim(); if(!nm) continue;
+    if(idm&&ID_MAP[idm[1]]) nm=ID_MAP[idm[1]];          // 카드번호로 정확한 학생
     // 시각
     let hh=null,mm=null; const tv=r[cDate];
     if(tv instanceof Date){ hh=tv.getHours(); mm=tv.getMinutes(); }
@@ -853,7 +872,8 @@ function handleXlsx(input){
   const file=input.files[0]; if(!file) return;
   const isCsv=/\.csv$/i.test(file.name);
   const reader=new FileReader();
-  reader.onload=function(e){
+  reader.onload=async function(e){
+    await loadIdMap();
     try{
       let rows;
       if(isCsv){
@@ -944,20 +964,21 @@ function judge(name,enterMin){
 
 /* 출입기록 이름 → 명단 학생
    1) 똑같은 이름  2) 공백·괄호를 뺀 이름  3) 끝 숫자를 뺀 이름이 명단에 한 명뿐일 때만 */
-function findStudent(name){
+function findStudent(name,taken){
   const norm=n=>String(n||'').replace(/\([^)]*\)/g,'').replace(/\s/g,'').trim();
   const bare=n=>norm(n).replace(/\d+$/,'');
   let s=students.find(x=>x.name===name)||students.find(x=>norm(x.name)===norm(name));
   if(s) return s;
-  const c=students.filter(x=>bare(x.name)===bare(name));
+  const c=students.filter(x=>bare(x.name)===bare(name) && !(taken&&taken.has(x.name)));
   return c.length===1?c[0]:null;
 }
 
 function processEnterRecords(enterRecords){
+  const exact=new Set(enterRecords.map(r=>r.name).filter(n=>students.some(s=>s.name===n)));
   const first={};                                    // 학생 id → 가장 이른 입실
   const unmatched={};
   enterRecords.forEach(r=>{
-    const st=findStudent(r.name);
+    const st=findStudent(r.name,exact);
     if(!st){ if(!unmatched[r.name]||r.hour*60+r.min<unmatched[r.name].m) unmatched[r.name]={name:r.name,time:r.timeStr,m:r.hour*60+r.min}; return; }
     const m=r.hour*60+r.min;
     if(!first[st.id]||m<first[st.id].m) first[st.id]={m,time:r.timeStr};
@@ -982,6 +1003,8 @@ function processEnterRecords(enterRecords){
   const um=xlsxParsed.unmatched;
   if(um.length) html+=`<div style="margin-bottom:14px"><div style="font-weight:700;color:var(--muted);margin-bottom:8px">❓ 명단 외 — ${um.length}명</div><div style="display:flex;flex-wrap:wrap;gap:6px">${um.map(r=>`<span style="background:#f0f4f8;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span></span>`).join('')}</div></div>`;
   if(!result.some(x=>x.time)) html='<div style="text-align:center;padding:30px;color:var(--muted)">📭 매칭된 학생이 없습니다</div>';
+  // 정기일정이 없으면 '13시 지각' 같은 학생도 무단지각이 된다 — 벌점이 붙기 전에 알린다
+  if(!Object.keys(scheduleData||{}).length) html='<div style="background:#fff3cd;border:1px solid #f5d5a0;color:#7a4a00;border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13px;line-height:1.6"><b>⚠️ 정기일정이 올라와 있지 않습니다.</b><br>정기지각 학생도 모두 무단지각으로 잡힙니다. 「📅 정기일정 업로드」를 먼저 하고 다시 올려 주세요.</div>'+html;
   document.getElementById('xlsxResult').innerHTML=html;
   document.getElementById('xlsxMo').classList.add('open');
 }
@@ -1107,6 +1130,10 @@ async function saveToSheet(){
     return;
   }
 
+  // 정기일정 없이 무단지각이 있으면 벌점이 잘못 붙을 수 있다 — 한 번 더 묻는다
+  if(!Object.keys(scheduleData||{}).length && records.some(r=>r.status==='late')){
+    if(!confirm('정기일정이 올라와 있지 않습니다.\n정기지각 학생까지 무단지각으로 저장되고 벌점이 붙습니다.\n\n그래도 저장할까요?')) return;
+  }
   // 입실시간이 하나도 없이 모두 출석이면 출입기록 없이 저장하는 것이다 — 한 번 더 묻는다
   if(records.every(r=>r.status==='present') && !records.some(r=>r.time)){
     if(!confirm(records.length+'명이 모두 출석이고 입실시간이 하나도 없습니다.\n'+

@@ -781,7 +781,8 @@ function handleXlsx(input){
           const dateStr=(cols[0]||'').trim(), device=(cols[4]||'').trim(), userStr=(cols[6]||'').trim(), event=(cols[8]||'').trim();
           if(!event.includes('authentication succeeded')||!device.includes('입문')) continue;
           const nameMatch=userStr.match(/\(([^)]+)\)/); if(!nameMatch) continue;
-          let name=nameMatch[1].trim().replace(/\d+$/,'').trim(); if(!name) continue;
+          // 끝 숫자를 지우면 김민성2·김민성3 이 한 사람이 되고 김민서5 가 김민서로 잡힌다 — 그대로 둔다
+          let name=nameMatch[1].trim(); if(!name) continue;
           const timeMatch=dateStr.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}):(\d{2})/); if(!timeMatch) continue;
           enterRecords.push({name,hour:parseInt(timeMatch[2]),min:parseInt(timeMatch[3]),timeStr:timeMatch[2]+':'+timeMatch[3]});
         }
@@ -832,6 +833,17 @@ function parseCSVLine(line){
   result.push(cur); return result;
 }
 
+/* 출입기록 이름 → 명단 학생
+   1) 똑같은 이름  2) 공백·괄호를 뺀 이름  3) 끝 숫자를 뺀 이름이 명단에 한 명뿐일 때만 */
+function findStudent(name){
+  const norm=n=>String(n||'').replace(/\([^)]*\)/g,'').replace(/\s/g,'').trim();
+  const bare=n=>norm(n).replace(/\d+$/,'');
+  let s=students.find(x=>x.name===name)||students.find(x=>norm(x.name)===norm(name));
+  if(s) return s;
+  const c=students.filter(x=>bare(x.name)===bare(name));
+  return c.length===1?c[0]:null;
+}
+
 function processEnterRecords(enterRecords){
   const normName=n=>n.replace(/\([^)]*\)/g,'').replace(/\s/g,'').trim();
   const firstEnter={};
@@ -840,13 +852,13 @@ function processEnterRecords(enterRecords){
   });
   const present=[],late=[],absentSched=[],unmatched=[];
   Object.values(firstEnter).forEach(r=>{
-    const student=students.find(s=>s.name===r.name)||students.find(s=>normName(s.name)===normName(r.name));
-    if(!student){unmatched.push(r);return;}
+    const student=findStudent(r.name);
+    if(!student){unmatched.push({name:r.name,time:r.timeStr});return;}
     const si=getScheduleForDate(student.name,curDate), dayText=si?si.dayText:'';
-    present.push({name:r.name,time:r.timeStr,note:dayText.includes('지각')?'승인지각':'출석'});
+    present.push({name:student.name,time:r.timeStr,note:dayText.includes('지각')?'승인지각':'출석'});
   });
   students.forEach(s=>{
-    const hasRecord=Object.values(firstEnter).some(r=>r.name===s.name||normName(r.name)===normName(s.name));
+    const hasRecord=Object.values(firstEnter).some(r=>findStudent(r.name)===s);
     if(!hasRecord){
       const si=getScheduleForDate(s.name,curDate), dayText=si?si.dayText:'';
       if(dayText.includes('결석')) absentSched.push({name:s.name,note:'결석(승인)'});

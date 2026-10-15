@@ -744,10 +744,12 @@ function exportCSV(){
     const si=getScheduleForDate(s.name,curDate), note=si&&si.dayText?si.dayText:'';
     rows.push([s.num,s.name,...dates.map(d=>{
       const v=(att[d]||{})[s.id], st=v?(typeof v==='object'?v.status:v):'';
-      return ({present:'출석',late:'무단지각',absent:'무단결석'})[st]||'';
+      // 시트 저장과 같은 이름 — 사유지각·사유결석이 빠져 CSV 에 빈칸으로 나가던 문제
+      return ({present:'출석',late:'무단지각',late_approved:'사유지각',absent:'무단결석',absent_approved:'사유결석'})[st]||'';
     }),note]);
   });
-  const blob=new Blob(['\uFEFF'+rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});
+  // 비고에 따옴표가 들어 있으면 칸이 깨지므로 "" 로 바꿔 넣는다
+  const blob=new Blob(['\uFEFF'+rows.map(r=>r.map(c=>`"${String(c==null?'':c).replace(/"/g,'""')}"`).join(',')).join('\n')],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`출결기록_${today()}.csv`; a.click();
   showToast('💾 CSV 저장 완료!');
 }

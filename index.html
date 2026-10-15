@@ -147,7 +147,7 @@
           <span>📅</span>
           <input type="date" id="dInput" onchange="changeDate()">
         </div>
-        <button class="btn btn-green" onclick="setAll('present')">✅ 전체 출석</button>
+        <button class="btn btn-green" onclick="setAll('present')" title="아직 미확인인 학생만 출석으로 (지각·결석은 그대로)">✅ 나머지 출석</button>
         <label class="btn btn-excel" style="cursor:pointer">📂 출입기록 업로드<input type="file" id="xlsxInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleXlsx(this)"></label>
         <label class="btn btn-orange" style="cursor:pointer">📋 사유제출 업로드<input type="file" id="reasonInput" accept=".csv" style="display:none" onchange="handleReasonCsv(this)"></label>
         <label class="btn btn-sched" style="cursor:pointer">📅 정기일정 업로드<input type="file" id="schedInput" accept=".xlsx,.xls" style="display:none" onchange="handleScheduleXlsx(this)"></label>
@@ -693,10 +693,18 @@ function setSt(id,status){
   save(); render(); stats();
 }
 
+/* 「전체 출석」 — 아직 미확인인 학생만 출석으로 채운다.
+   예전에는 모두를 덮어써서, 출입기록으로 잡은 지각·결석까지 출석이 됐고
+   출입기록 없이 누르면 60명 전원이 입실시간 없는 출석으로 시트에 저장됐다 (10/15). */
+function hasEntryLog(){ return students.some(st=>getTime(st.id)); }
 function setAll(s){
   if(!att[curDate]) att[curDate]={};
-  students.forEach(st=>{att[curDate][st.id]=s;});
-  save(); render(); stats(); showToast('✅ 전체 출석으로 설정했습니다!');
+  if(!hasEntryLog() && !confirm('오늘 출입기록을 아직 올리지 않았습니다.\n\n'+
+      '이대로 전체 출석을 하면 지각·결석이 하나도 반영되지 않습니다.\n'+
+      '먼저 「📂 출입기록 업로드」를 하는 것이 맞습니다.\n\n그래도 미확인 학생을 모두 출석으로 할까요?')) return;
+  let n=0;
+  students.forEach(st=>{ if(getSt(st.id)==='none'){ att[curDate][st.id]={status:s,time:'',note:''}; n++; } });
+  save(); render(); stats(); showToast('✅ 미확인 '+n+'명을 출석으로 설정했습니다 (지각·결석은 그대로)');
 }
 
 function stats(){
@@ -1068,6 +1076,12 @@ async function saveToSheet(){
   if(!records.length){
     showToast('⚠️ 저장할 출결이 없습니다 — 학생 출결을 먼저 체크하거나 출입기록을 올려 주세요');
     return;
+  }
+
+  // 입실시간이 하나도 없이 모두 출석이면 출입기록 없이 저장하는 것이다 — 한 번 더 묻는다
+  if(records.every(r=>r.status==='present') && !records.some(r=>r.time)){
+    if(!confirm(records.length+'명이 모두 출석이고 입실시간이 하나도 없습니다.\n'+
+        '출입기록을 올리지 않은 것 같습니다. 이대로 저장하면 지각·결석이 빠집니다.\n\n그래도 저장할까요?')) return;
   }
 
   const d=new Date(curDate+'T00:00:00'), sheetName=(d.getMonth()+1)+'월7층출결';

@@ -790,59 +790,88 @@ function exportSummary(){
   navigator.clipboard.writeText(text).then(()=>showToast('📋 요약 복사 완료!')).catch(()=>showToast('⚠️ 복사 실패'));
 }
 
+/* ═══ 출입기록 읽기 ═══
+   BioStar 는 화면 언어에 따라 CSV 머리글·문구가 달라진다.
+     영어  Date, Door, …, Device, User Group, User, Zone, Event   / 'authentication succeeded'
+     한국어 날짜, 출입문, …, 장치, 사용자 그룹, 사용자, 구역, 이벤트 / '인증 성공'
+   한국어로 내려받은 파일은 EUC-KR 인 경우도 있다.
+   예전에는 영어 문구만 찾아서, 한국어 파일을 올리면 '매칭된 학생이 없습니다' 가 떴다. */
+function decodeText(buf){
+  const u8=new Uint8Array(buf);
+  try{ return new TextDecoder('utf-8',{fatal:true}).decode(u8).replace(/^﻿/,''); }
+  catch(e){ return new TextDecoder('euc-kr').decode(u8); }
+}
+
+function accessFromRows(rows){
+  const out={records:[],read:0,why:''};
+  if(!rows.length){ out.why='파일이 비어 있습니다'; return out; }
+  // 머리글 줄 찾기 (맨 위 5줄 안)
+  let hi=-1;
+  for(let i=0;i<Math.min(5,rows.length);i++){
+    const h=rows[i].map(x=>String(x||'').trim());
+    if(h.some(x=>/^(date|날짜|일시|시간)$/i.test(x)) && h.some(x=>/^(user|사용자|이름)$/i.test(x))){ hi=i; break; }
+  }
+  if(hi<0){
+    const h=(rows[0]||[]).map(x=>String(x||'').trim()).join(', ');
+    out.why = /번호.*이름/.test(h) ? '이 파일은 출결 앱이 내려받은 「출결기록」 CSV 입니다. BioStar 에서 내려받은 출입기록 파일을 올려 주세요.'
+                                  : '출입기록 머리글(날짜·사용자)을 찾지 못했습니다. 첫 줄: '+h.slice(0,80);
+    return out;
+  }
+  const H=rows[hi].map(x=>String(x||'').trim());
+  const col=re=>H.findIndex(x=>re.test(x));
+  const cDate=col(/^(date|날짜|일시|시간)$/i), cUser=col(/^(user|사용자|이름)$/i);
+  const cDev=col(/^(device|장치|장치명)$/i), cDoor=col(/^(door|출입문)$/i);
+  const cEvt=col(/^(event|이벤트)$/i), cDir=col(/방향/);
+  for(let i=hi+1;i<rows.length;i++){
+    const r=rows[i]; if(!r||!r.length) continue;
+    out.read++;
+    const evt=cEvt>=0?String(r[cEvt]||''):'';
+    if(cEvt>=0 && !/authentication succeeded|인증 성공|access granted|출입 허가/i.test(evt)) continue;
+    const dev=[cDev,cDoor].filter(c=>c>=0).map(c=>String(r[c]||'')).join(' ');
+    if(cDir>=0){ const d=String(r[cDir]||'').toUpperCase(); if(d && d!=='ENTER' && !/입/.test(d)) continue; }
+    else if((cDev>=0||cDoor>=0) && !/입문|입실|entry/i.test(dev)) continue;
+    // 사용자 '133620(안예찬)' 또는 그냥 '안예찬'
+    const u=String(r[cUser]||'').trim(); if(!u) continue;
+    const nm=(u.match(/\(([^)]+)\)/)||[null,u])[1].trim(); if(!nm) continue;
+    // 시각
+    let hh=null,mm=null; const tv=r[cDate];
+    if(tv instanceof Date){ hh=tv.getHours(); mm=tv.getMinutes(); }
+    else if(typeof tv==='number'){ const ts=Math.round((tv%1)*1440); hh=Math.floor(ts/60); mm=ts%60; }
+    else{
+      const t=String(tv||''); const pm=/오후|pm/i.test(t);
+      const m=t.replace(/오전|오후|am|pm/gi,'').match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*$/)||t.match(/(\d{1,2}):(\d{2})/);
+      if(m){ hh=+m[1]; mm=+m[2]; if(pm&&hh<12) hh+=12; if(/오전|am/i.test(t)&&hh===12) hh=0; }
+    }
+    if(hh==null) continue;
+    out.records.push({name:nm,hour:hh,min:mm,timeStr:String(hh).padStart(2,'0')+':'+String(mm).padStart(2,'0')});
+  }
+  if(!out.records.length) out.why='줄은 '+out.read+'개 읽었지만 「입문」 장치에서 인증 성공한 기록이 없습니다.';
+  return out;
+}
+
 function handleXlsx(input){
   const file=input.files[0]; if(!file) return;
-  const isCsv=file.name.toLowerCase().endsWith('.csv');
+  const isCsv=/\.csv$/i.test(file.name);
   const reader=new FileReader();
   reader.onload=function(e){
     try{
+      let rows;
       if(isCsv){
-        const lines=e.target.result.split('\n'), enterRecords=[];
-        for(let i=1;i<lines.length;i++){
-          const line=lines[i].trim(); if(!line) continue;
-          const cols=parseCSVLine(line); if(cols.length<7) continue;
-          const dateStr=(cols[0]||'').trim(), device=(cols[4]||'').trim(), userStr=(cols[6]||'').trim(), event=(cols[8]||'').trim();
-          if(!event.includes('authentication succeeded')||!device.includes('입문')) continue;
-          const nameMatch=userStr.match(/\(([^)]+)\)/); if(!nameMatch) continue;
-          // 끝 숫자를 지우면 김민성2·김민성3 이 한 사람이 되고 김민서5 가 김민서로 잡힌다 — 그대로 둔다
-          let name=nameMatch[1].trim(); if(!name) continue;
-          const timeMatch=dateStr.match(/(\d{4}-\d{2}-\d{2})\s+(\d{2}):(\d{2})/); if(!timeMatch) continue;
-          enterRecords.push({name,hour:parseInt(timeMatch[2]),min:parseInt(timeMatch[3]),timeStr:timeMatch[2]+':'+timeMatch[3]});
-        }
-        processEnterRecords(enterRecords);
+        rows=decodeText(e.target.result).split(/\r?\n/).filter(l=>l.trim()).map(parseCSVLine);
       } else {
-        const data=new Uint8Array(e.target.result), wb=XLSX.read(data,{type:'array',cellDates:true});
-        const ws=wb.Sheets[wb.SheetNames[0]], rows=XLSX.utils.sheet_to_json(ws,{header:1});
-        const header=rows[0]||[];
-        const timeIdx=header.findIndex(h=>String(h).includes('시간'));
-        const nameIdx=header.findIndex(h=>String(h).includes('이름'));
-        const dirIdx=header.findIndex(h=>String(h).includes('방향'));
-        if(timeIdx===-1||nameIdx===-1){showToast('❌ 파일 형식 오류');input.value='';return;}
-        const enterRecords=[];
-        for(let i=1;i<rows.length;i++){
-          const row=rows[i]; if(!row||!row[nameIdx]) continue;
-          const name=String(row[nameIdx]).trim(); if(!name) continue;
-          const dir=dirIdx>=0?String(row[dirIdx]||'').toUpperCase():'';
-          if(dir&&dir!=='ENTER') continue;
-          let timeVal=row[timeIdx],hour=25,min=0,isPM=false;
-          if(timeVal instanceof Date){hour=timeVal.getHours();min=timeVal.getMinutes();}
-          else if(typeof timeVal==='string'){
-            isPM=timeVal.includes('오후')||timeVal.toLowerCase().includes('pm');
-            const cleaned=timeVal.replace(/오전|오후|AM|PM/gi,'').trim();
-            const m=cleaned.match(/(\d{1,2}):(\d{2})/);
-            if(m){hour=parseInt(m[1]);min=parseInt(m[2]);if(isPM&&hour!==12)hour+=12;if(!isPM&&hour===12)hour=0;}
-          } else if(typeof timeVal==='number'){
-            const ts=Math.round(timeVal*86400);hour=Math.floor(ts/3600)%24;min=Math.floor((ts%3600)/60);
-          }
-          const timeStr=String(hour).padStart(2,'0')+':'+String(min).padStart(2,'0');
-          enterRecords.push({name,hour,min,timeStr});
-        }
-        processEnterRecords(enterRecords);
+        const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+        rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:true});
       }
+      const res=accessFromRows(rows);
+      if(!res.records.length){
+        document.getElementById('xlsxResult').innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);line-height:1.7">📭 읽을 수 있는 입실 기록이 없습니다<br><span style="font-size:13px">'+res.why+'</span></div>';
+        document.getElementById('xlsxMo').classList.add('open');
+        xlsxParsed={};
+      } else processEnterRecords(res.records);
     } catch(err){ showToast('❌ 파일 파싱 오류: '+err.message); }
     input.value='';
   };
-  isCsv?reader.readAsText(file,'UTF-8'):reader.readAsArrayBuffer(file);
+  reader.readAsArrayBuffer(file);
 }
 
 function parseCSVLine(line){

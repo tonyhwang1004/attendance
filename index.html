@@ -59,6 +59,7 @@
   .card[data-s=present]::before{background:var(--present)}.card[data-s=late]::before{background:var(--late)}
   .card[data-s=late_approved]::before{background:var(--late)}.card[data-s=absent]::before{background:var(--absent)}
   .card[data-s=absent_approved]::before{background:#f5a623}.card[data-s=none]::before{background:#dde3ea}
+  .card[data-s=late_sched]::before{background:#60a5fa}.card[data-s=absent_sched]::before{background:#a78bfa}
   .card:hover{border-color:#a8c4f0;box-shadow:0 6px 18px rgba(26,115,232,.12);transform:translateY(-1px)}
   .card-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .snum{font-family:'Space Mono',monospace;font-size:10px;color:#90a4ae;margin-bottom:2px}
@@ -609,13 +610,17 @@ function render(){
           <div class="snum">No.${s.num}</div>
           <div class="sname">${s.name}</div>
           ${tm?`<div style="font-size:11px;color:var(--muted);margin-top:2px;font-family:'Space Mono',monospace">⏰ ${tm}</div>`:''}
-          ${st==='late_approved'?`<div style="font-size:11px;color:#b45309;margin-top:2px">⏰ 사유지각</div>`:''}
-          ${st==='absent_approved'?`<div style="font-size:11px;color:#f5a623;margin-top:2px">📋 사유결석</div>`:''}
+          ${st==='late'?`<div style="font-size:11px;color:#e65100;margin-top:2px">⚠️ 무단지각${getNote(s.id)?' · '+getNote(s.id):''}</div>`:''}
+          ${st==='late_approved'?`<div style="font-size:11px;color:#b45309;margin-top:2px">⏰ 사유지각${getNote(s.id)?' · '+getNote(s.id):''}</div>`:''}
+          ${st==='late_sched'?`<div style="font-size:11px;color:#2563eb;margin-top:2px">📅 정기지각</div>`:''}
+          ${st==='absent'?`<div style="font-size:11px;color:#c0392b;margin-top:2px">❌ 무단결석</div>`:''}
+          ${st==='absent_approved'?`<div style="font-size:11px;color:#f5a623;margin-top:2px">📋 사유결석${getNote(s.id)?' · '+getNote(s.id):''}</div>`:''}
+          ${st==='absent_sched'?`<div style="font-size:11px;color:#7c3aed;margin-top:2px">📅 정기결석</div>`:''}
         </div>
         <div class="abtns">
           <button class="ab pb ${st==='present'?'on':''}" onclick="setSt('${s.id}','present')" title="출석">✅</button>
-          <button class="ab lb ${st==='late'||st==='late_approved'?'on':''}" onclick="setSt('${s.id}','late')" title="무단지각">⚠️</button>
-          <button class="ab xb ${st==='absent'||st==='absent_approved'?'on':''}" onclick="setSt('${s.id}','absent')" title="무단결석">❌</button>
+          <button class="ab lb ${isLate(st)?'on':''}" onclick="setSt('${s.id}','late')" title="지각 — 다시 누르면 무단 → 사유 → 정기">⚠️</button>
+          <button class="ab xb ${isAbsent(st)?'on':''}" onclick="setSt('${s.id}','absent')" title="결석 — 다시 누르면 무단 → 사유 → 정기">❌</button>
         </div>
       </div>
       ${(tagsHtml||noteTextHtml||extraHtml)?`
@@ -666,19 +671,26 @@ document.addEventListener('click',e=>{ if(e.target.id==='noteMo') closeNoteMo();
 
 function getSt(id){ const v=((att[curDate]||{})[id]); return v?(typeof v==='object'?v.status:v):'none'; }
 function getTime(id){ const v=((att[curDate]||{})[id]); return v&&typeof v==='object'?v.time:''; }
+function getNote(id){ const v=((att[curDate]||{})[id]); return v&&typeof v==='object'?(v.note||''):''; }
+function isLate(st){ return st==='late'||st==='late_approved'||st==='late_sched'; }
+function isAbsent(st){ return st==='absent'||st==='absent_approved'||st==='absent_sched'; }
 
+/* ⚠️ 를 누를 때마다 무단지각 → 사유지각 → 정기지각 → 해제, ❌ 도 같은 순서.
+   입실시간은 그대로 둔다 (출입기록에서 온 시간). */
+const ST_CYCLE={late:['late','late_approved','late_sched'],absent:['absent','absent_approved','absent_sched']};
 function setSt(id,status){
   if(!att[curDate]) att[curDate]={};
-  const cur=getSt(id);
-  cur===status?delete att[curDate][id]:(att[curDate][id]={status,time:''});
-  save();
-  const card=document.getElementById('c'+id);
-  if(card){
-    const ns=getSt(id); card.dataset.s=ns||'none';
-    card.querySelectorAll('.ab').forEach(b=>b.classList.remove('on'));
-    if(ns&&ns!=='none'){ const cls={present:'pb',late:'lb',absent:'xb'}[ns]; card.querySelector('.'+cls)?.classList.add('on'); }
-  }
-  stats();
+  const cur=getSt(id), prev=att[curDate][id];
+  const time=prev&&typeof prev==='object'?prev.time||'':'';
+  const cyc=ST_CYCLE[status];
+  let next=status;
+  if(cyc){
+    const i=cyc.indexOf(cur);
+    next = i<0 ? cyc[0] : (i+1<cyc.length ? cyc[i+1] : null);
+  } else if(cur===status) next=null;
+  if(next) att[curDate][id]={status:next,time:next==='present'||isLate(next)?time:'',note:''};
+  else delete att[curDate][id];
+  save(); render(); stats();
 }
 
 function setAll(s){
@@ -691,9 +703,9 @@ function stats(){
   const n=students.length;
   const p=students.filter(s=>getSt(s.id)==='present').length;
   const l=students.filter(s=>getSt(s.id)==='late').length;
-  const la=students.filter(s=>getSt(s.id)==='late_approved').length;
+  const la=students.filter(s=>getSt(s.id)==='late_approved'||getSt(s.id)==='late_sched').length;
   const a=students.filter(s=>getSt(s.id)==='absent').length;
-  const aa=students.filter(s=>getSt(s.id)==='absent_approved').length;
+  const aa=students.filter(s=>getSt(s.id)==='absent_approved'||getSt(s.id)==='absent_sched').length;
   const c=p+l+la+a+aa;
   document.getElementById('sT').textContent=n;
   document.getElementById('sP').textContent=p;
@@ -745,7 +757,7 @@ function exportCSV(){
     rows.push([s.num,s.name,...dates.map(d=>{
       const v=(att[d]||{})[s.id], st=v?(typeof v==='object'?v.status:v):'';
       // 시트 저장과 같은 이름 — 사유지각·사유결석이 빠져 CSV 에 빈칸으로 나가던 문제
-      return ({present:'출석',late:'무단지각',late_approved:'사유지각',absent:'무단결석',absent_approved:'사유결석'})[st]||'';
+      return ST_TEXT[st]||'';
     }),note]);
   });
   // 비고에 따옴표가 들어 있으면 칸이 깨지므로 "" 로 바꿔 넣는다
@@ -757,12 +769,15 @@ function exportCSV(){
 function exportSummary(){
   const p=students.filter(s=>getSt(s.id)==='present'), l=students.filter(s=>getSt(s.id)==='late'),
         la=students.filter(s=>getSt(s.id)==='late_approved'), a=students.filter(s=>getSt(s.id)==='absent'),
-        aa=students.filter(s=>getSt(s.id)==='absent_approved'), none=students.filter(s=>getSt(s.id)==='none');
+        aa=students.filter(s=>getSt(s.id)==='absent_approved'), none=students.filter(s=>getSt(s.id)==='none'),
+        ls=students.filter(s=>getSt(s.id)==='late_sched'), as_=students.filter(s=>getSt(s.id)==='absent_sched');
   let text=`[출결 요약] ${curDate} (7층)\n전체: ${students.length}명\n✅ 출석: ${p.length}명\n`;
   if(l.length) text+=`⚠️ 무단지각: ${l.length}명 (${l.map(s=>s.name).join(', ')})\n`;
   if(la.length) text+=`⏰ 사유지각: ${la.length}명 (${la.map(s=>s.name).join(', ')})\n`;
   if(a.length) text+=`❌ 무단결석: ${a.length}명 (${a.map(s=>s.name).join(', ')})\n`;
   if(aa.length) text+=`📋 사유결석: ${aa.length}명 (${aa.map(s=>s.name).join(', ')})\n`;
+  if(ls.length) text+=`📅 정기지각: ${ls.length}명 (${ls.map(s=>s.name).join(', ')})\n`;
+  if(as_.length) text+=`📅 정기결석: ${as_.length}명 (${as_.map(s=>s.name).join(', ')})\n`;
   if(none.length) text+=`⬜ 미확인: ${none.length}명 (${none.map(s=>s.name).join(', ')})\n`;
   navigator.clipboard.writeText(text).then(()=>showToast('📋 요약 복사 완료!')).catch(()=>showToast('⚠️ 복사 실패'));
 }
@@ -833,6 +848,63 @@ function parseCSVLine(line){
   result.push(cur); return result;
 }
 
+/* ═══ 출결 판정 ═══
+   시트에서 직원들이 손으로 고치던 기준 그대로 (10월7층출결 확인)
+     첫 입실 08:00 까지          → 출석
+     정기일정 지각·등원 시각까지  → 정기지각   (예: '13시 지각', '10시 등원', '지각 8:30')
+     그보다 늦음 + 사유제출 지각  → 사유지각
+     그보다 늦음                  → 무단지각   (비고: 'N분지각')
+     입실 없음 + 정기일정 결석    → 정기결석
+     입실 없음 + 사유제출 결석    → 사유결석
+     입실 없음 (그 밖)            → 미확인 — 직원이 확인한다 (무단결석 벌점이 자동으로 붙지 않게) */
+const ST_TEXT={present:'출석',late:'무단지각',late_approved:'사유지각',late_sched:'정기지각',
+               absent:'무단결석',absent_approved:'사유결석',absent_sched:'정기결석'};
+const BASE_MIN=8*60;   // 08:00
+
+function hmToMin(h,m){ h=+h; m=+(m||0); if(h>=1&&h<7) h+=12; return h*60+m; }   // '1시' 는 13시
+function minToHm(v){ return String(Math.floor(v/60)).padStart(2,'0')+':'+String(v%60).padStart(2,'0'); }
+
+/* 정기일정 글에서 늦게 와도 되는 시각(분)을 찾는다. 없으면 null */
+function schedArrive(text){
+  const t=String(text||'');
+  // '13시 지각' '19시 등원' '7시 50분 등원' '10시 지각 (학원)'
+  let m=t.match(/(\d{1,2})\s*(?:시|:)\s*(?:(\d{1,2})\s*분?)?\s*(?:\([^)]*\))?\s*(?:지각|등원)/);
+  if(m) return hmToMin(m[1],m[2]);
+  // '지각8시' '지각 8:30' '등원 8시 15분' '지각13시'
+  m=t.match(/(?:지각|등원)\s*(\d{1,2})\s*(?:시|:)\s*(?:(\d{1,2})\s*분?)?/);
+  if(m) return hmToMin(m[1],m[2]);
+  return null;
+}
+
+/* 학생 한 명의 그날 기준 — 정기일정 · 기타란 · 사유제출 */
+function dayRule(name){
+  const si=getScheduleForDate(name,curDate), dayText=si?si.dayText:'';
+  const entry=scheduleData[name];
+  const extra=entry&&entry.extra?parseExtraForDate(entry.extra,curDate):null;
+  const rs=(typeof reasonData!=='undefined'&&reasonData)?reasonData[name]:null;
+  let allow=schedArrive(dayText);
+  if(extra&&extra.status==='late_approved'){ const x=schedArrive('지각 '+extra.label.replace(/^사유지각\s*/,'')); if(x!=null) allow=Math.max(allow||0,x); }
+  const schedAbsent=/결석/.test(dayText)||(extra&&extra.status==='absent_approved');
+  return {allow, schedAbsent, reasonLate:rs&&rs.type==='지각'?rs:null, reasonAbsent:rs&&rs.type==='결석'?rs:null};
+}
+
+/* 첫 입실 시각(분) 으로 상태를 정한다. enterMin 이 null 이면 입실 기록 없음 */
+function judge(name,enterMin){
+  const r=dayRule(name);
+  if(enterMin==null){
+    if(r.reasonAbsent) return {status:'absent_approved',note:r.reasonAbsent.reason||''};
+    if(r.schedAbsent) return {status:'absent_sched',note:''};
+    return null;                                     // 미확인
+  }
+  if(enterMin<=BASE_MIN) return {status:'present',note:''};
+  const limit=Math.max(BASE_MIN, r.allow==null?BASE_MIN:r.allow);
+  if(enterMin<=limit) return {status:'late_sched',note:''};
+  if(r.schedAbsent&&r.allow==null) return {status:'absent_sched',note:''};
+  const over=enterMin-limit, ov=over>=60?Math.floor(over/60)+'시간'+(over%60?over%60+'분':''):over+'분';
+  if(r.reasonLate) return {status:'late_approved',note:(r.reasonLate.reason||'사유제출')+' / '+ov+'지각'};
+  return {status:'late',note:ov+'지각'};
+}
+
 /* 출입기록 이름 → 명단 학생
    1) 똑같은 이름  2) 공백·괄호를 뺀 이름  3) 끝 숫자를 뺀 이름이 명단에 한 명뿐일 때만 */
 function findStudent(name){
@@ -845,45 +917,53 @@ function findStudent(name){
 }
 
 function processEnterRecords(enterRecords){
-  const normName=n=>n.replace(/\([^)]*\)/g,'').replace(/\s/g,'').trim();
-  const firstEnter={};
+  const first={};                                    // 학생 id → 가장 이른 입실
+  const unmatched={};
   enterRecords.forEach(r=>{
-    if(!firstEnter[r.name]||r.hour*60+r.min<firstEnter[r.name].hour*60+firstEnter[r.name].min) firstEnter[r.name]=r;
+    const st=findStudent(r.name);
+    if(!st){ if(!unmatched[r.name]||r.hour*60+r.min<unmatched[r.name].m) unmatched[r.name]={name:r.name,time:r.timeStr,m:r.hour*60+r.min}; return; }
+    const m=r.hour*60+r.min;
+    if(!first[st.id]||m<first[st.id].m) first[st.id]={m,time:r.timeStr};
   });
-  const present=[],late=[],absentSched=[],unmatched=[];
-  Object.values(firstEnter).forEach(r=>{
-    const student=findStudent(r.name);
-    if(!student){unmatched.push({name:r.name,time:r.timeStr});return;}
-    const si=getScheduleForDate(student.name,curDate), dayText=si?si.dayText:'';
-    present.push({name:student.name,time:r.timeStr,note:dayText.includes('지각')?'승인지각':'출석'});
-  });
+  const result=[];                                   // {id,name,status,time,note}
   students.forEach(s=>{
-    const hasRecord=Object.values(firstEnter).some(r=>findStudent(r.name)===s);
-    if(!hasRecord){
-      const si=getScheduleForDate(s.name,curDate), dayText=si?si.dayText:'';
-      if(dayText.includes('결석')) absentSched.push({name:s.name,note:'결석(승인)'});
-    }
+    const f=first[s.id];
+    const j=judge(s.name,f?f.m:null);
+    result.push({id:s.id,name:s.name,status:j?j.status:'none',time:f?f.time:'',note:j?j.note:''});
   });
-  xlsxParsed={present,late,absentSched,unmatched,before8:present,after8:late};
+  xlsxParsed={result,unmatched:Object.values(unmatched),present:result};
+
+  const groups=[['present','✅ 출석','var(--present)','#e8f5ee'],['late_sched','📅 정기지각','#2563eb','#eff6ff'],
+    ['late_approved','⏰ 사유지각','#b45309','#fff8e1'],['late','⚠️ 무단지각','#e65100','#fff3e0'],
+    ['absent_sched','📅 정기결석','#7c3aed','#f5f3ff'],['absent_approved','📋 사유결석','#b45309','#fff8ee'],
+    ['none','⬜ 입실 기록 없음 — 직접 확인','var(--muted)','#f0f4f8']];
   let html='';
-  if(present.length) html+=`<div style="margin-bottom:16px"><div style="font-weight:700;color:var(--present);margin-bottom:8px">✅ 출석 — ${present.length}명</div><div style="display:flex;flex-wrap:wrap;gap:8px">${present.map(r=>`<span style="background:#e8f5ee;color:var(--present);border:1px solid #b8dfc9;border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span>${r.note==='승인지각'?' 📅':''}</span>`).join('')}</div></div>`;
-  if(absentSched.length) html+=`<div style="margin-bottom:16px"><div style="font-weight:700;color:var(--absent);margin-bottom:8px">❌ 결석(승인) — ${absentSched.length}명</div><div style="display:flex;flex-wrap:wrap;gap:8px">${absentSched.map(r=>`<span style="background:#fde8e8;color:var(--absent);border:1px solid #f5b8b8;border-radius:20px;padding:4px 12px;font-size:13px">${r.name}</span>`).join('')}</div></div>`;
-  if(unmatched.length) html+=`<div style="margin-bottom:16px"><div style="font-weight:700;color:var(--muted);margin-bottom:8px">❓ 명단 외 — ${unmatched.length}명</div><div style="display:flex;flex-wrap:wrap;gap:8px">${unmatched.map(r=>`<span style="background:#f0f4f8;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span></span>`).join('')}</div></div>`;
-  if(!present.length&&!late.length) html='<div style="text-align:center;padding:30px;color:var(--muted)">📭 매칭된 학생이 없습니다</div>';
+  groups.forEach(([k,label,c,bg])=>{
+    const list=result.filter(x=>x.status===k); if(!list.length) return;
+    html+=`<div style="margin-bottom:14px"><div style="font-weight:700;color:${c};margin-bottom:8px">${label} — ${list.length}명</div><div style="display:flex;flex-wrap:wrap;gap:6px">${list.map(x=>`<span style="background:${bg};color:${c};border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:13px">${x.name}${x.time?` <span style="opacity:.7">${x.time}</span>`:''}${x.note?` <span style="opacity:.7;font-size:11px">${x.note}</span>`:''}</span>`).join('')}</div></div>`;
+  });
+  const um=xlsxParsed.unmatched;
+  if(um.length) html+=`<div style="margin-bottom:14px"><div style="font-weight:700;color:var(--muted);margin-bottom:8px">❓ 명단 외 — ${um.length}명</div><div style="display:flex;flex-wrap:wrap;gap:6px">${um.map(r=>`<span style="background:#f0f4f8;color:var(--muted);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:13px">${r.name} <span style="opacity:.7">${r.time}</span></span>`).join('')}</div></div>`;
+  if(!result.some(x=>x.time)) html='<div style="text-align:center;padding:30px;color:var(--muted)">📭 매칭된 학생이 없습니다</div>';
   document.getElementById('xlsxResult').innerHTML=html;
   document.getElementById('xlsxMo').classList.add('open');
 }
 
 function applyXlsx(){
-  if(!xlsxParsed.present&&!xlsxParsed.before8) return;
+  if(!xlsxParsed.result) return;
   const d=new Date(curDate+'T00:00:00'); if(d.getDay()===0){showToast('일요일은 자율등원일입니다.');return;}
-  att[curDate]={}; const normName=n=>n.replace(/\([^)]*\)/g,'').replace(/\s/g,'').trim(); let cntP=0,cntL=0,cntA=0;
-  (xlsxParsed.present||[]).forEach(r=>{const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name));if(s){att[curDate][s.id]={status:'present',time:r.time};cntP++;}});
-  (xlsxParsed.late||[]).forEach(r=>{const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name));if(s){att[curDate][s.id]={status:'late',time:r.time};cntL++;}});
-  (xlsxParsed.absentSched||[]).forEach(r=>{const s=students.find(st=>st.name===r.name)||students.find(st=>normName(st.name)===normName(r.name));if(s){att[curDate][s.id]={status:'absent_approved',time:''};cntA++;}});
+  att[curDate]={};
+  const cnt={};
+  xlsxParsed.result.forEach(x=>{
+    if(x.status==='none') return;
+    att[curDate][x.id]={status:x.status,time:x.time,note:x.note};
+    cnt[x.status]=(cnt[x.status]||0)+1;
+  });
   save(); render(); stats(); closeXlsxMo();
-  showToast(`✅ 출석 ${cntP}명 / ⚠️ 무단지각 ${cntL}명 / ❌ 결석 ${cntA}명 처리 완료!`);
+  const parts=Object.keys(ST_TEXT).filter(k=>cnt[k]).map(k=>ST_TEXT[k]+' '+cnt[k]);
+  showToast('✅ 적용 — '+(parts.join(' · ')||'없음'));
 }
+
 function closeXlsxMo(){ document.getElementById('xlsxMo').classList.remove('open'); }
 
 let reasonData={};
@@ -928,8 +1008,18 @@ function applyReason(){
     const student=students.find(s=>s.name===name)||students.find(s=>normName(s.name)===normName(name));
     if(!student) return;
     if(!att[curDate]) att[curDate]={};
-    if(v.type==='지각'){const cur=getSt(student.id);if(cur==='none'){att[curDate][student.id]={status:'late_approved',time:v.arrive||''};cntLate++;}}
-    else if(v.type==='결석'){att[curDate][student.id]={status:'absent_approved',time:''};cntAbs++;}
+    const cur=getSt(student.id), prev=att[curDate][student.id]||{};
+    if(v.type==='지각'){
+      // 출입기록으로 무단지각이 된 학생도 사유가 있으면 사유지각으로 (입실시간은 그대로)
+      if(cur==='none'||cur==='late'){
+        att[curDate][student.id]={status:'late_approved',time:(prev.time||v.arrive||'').replace(/^-$/,''),
+          note:(v.reason||'사유제출')+(prev.note&&/지각$/.test(prev.note)?' / '+prev.note:'')};
+        cntLate++;
+      }
+    }
+    else if(v.type==='결석'){
+      if(cur==='none'||isAbsent(cur)){att[curDate][student.id]={status:'absent_approved',time:'',note:v.reason||''};cntAbs++;}
+    }
     else if(v.type==='조기하원'){cntEarly++;}
   });
   save(); render(); stats(); closeReasonMo();
@@ -941,64 +1031,24 @@ document.addEventListener('click',e=>{ if(e.target.id==='reasonMo') closeReasonM
 async function saveToSheet(){
   const _d=new Date(curDate+'T00:00:00'); if(_d.getDay()===0){showToast('일요일은 저장하지 않습니다.');return;}
 
-  // ✅ 저장 전 자동반영 (미확인 학생만, 이미 설정된 학생은 유지)
+  // 저장 전 자동반영 — 미확인 학생 중 '오지 않는 날' 이 확실한 학생만 채운다.
+  // 예전에는 정기일정에 '8시 등원' 만 있어도 오지 않은 학생을 출석으로 넣어
+  // 시트에 모두 출석으로 저장됐다. 입실 여부는 출입기록·직원 체크로만 정한다.
   if(!att[curDate]) att[curDate]={};
   let autoCnt=0;
   students.forEach(s=>{
-    if(getSt(s.id)!=='none') return; // 이미 수동 설정된 학생은 건드리지 않음
-    const entry=scheduleData[s.name];
-    if(!entry) return;
-
-    // 1순위: 기타란 날짜 파싱
-    if(entry.extra){
-      const result=parseExtraForDate(entry.extra,curDate);
-      if(result){
-        att[curDate][s.id]={status:result.status,time:''};
-        autoCnt++; return;
-      }
-    }
-
-    // 2순위: 요일별 정기일정으로 출결 결정
-    const si=getScheduleForDate(s.name,curDate);
-    const dayText=si?si.dayText:'';
-    if(!dayText||dayText.toLowerCase()==='nan'||dayText.includes('자율')) return;
-
-    if(dayText.includes('결석')){
-      att[curDate][s.id]={status:'absent_approved',time:''};
-      autoCnt++;
-    } else {
-      // ✅ 등원 시간 먼저 추출 (등원이 있으면 출석 우선)
-      let timeStr='';
-      const tmEnterBefore=dayText.match(/(\d{1,2})시(\d{0,2})분?\s*등원/);   // "8시 등원", "8시15분 등원"
-      const tmEnterAfter=dayText.match(/등원\s*(\d{1,2})[시:]\s*(\d{0,2})/); // "등원8시", "등원8:00"
-      const tmLateBefore=dayText.match(/(\d{1,2})시(\d{0,2})분?\s*지각/);    // "10시 지각", "9시30분 지각"
-      const tmLateAfter=dayText.match(/지각\s*(\d{1,2})[시:]\s*(\d{0,2})/);  // "지각8시", "지각8:00"
-
-      if(dayText.includes('등원')){
-        // 출석: 등원 시간 추출
-        if(tmEnterBefore){ const h=tmEnterBefore[1].padStart(2,'0'), m=(tmEnterBefore[2]||'00').padStart(2,'0'); timeStr=h+':'+m; }
-        else if(tmEnterAfter){ const h=tmEnterAfter[1].padStart(2,'0'), m=(tmEnterAfter[2]||'00').padStart(2,'0'); timeStr=h+':'+m; }
-        att[curDate][s.id]={status:'present',time:timeStr};
-        autoCnt++;
-      } else if(dayText.includes('지각')){
-        // 지각: 지각 시간 추출
-        if(tmLateBefore){ const h=tmLateBefore[1].padStart(2,'0'), m=(tmLateBefore[2]||'00').padStart(2,'0'); timeStr=h+':'+m; }
-        else if(tmLateAfter){ const h=tmLateAfter[1].padStart(2,'0'), m=(tmLateAfter[2]||'00').padStart(2,'0'); timeStr=h+':'+m; }
-        att[curDate][s.id]={status:'late_approved',time:timeStr};
-        autoCnt++;
-      } else if(dayText.includes('하원')||dayText.includes('조퇴')){
-        att[curDate][s.id]={status:'present',time:''};
-        autoCnt++;
-      }
-    }
+    if(getSt(s.id)!=='none') return;
+    const j=judge(s.name,null);
+    if(j){ att[curDate][s.id]={status:j.status,time:'',note:j.note}; autoCnt++; }
   });
   if(autoCnt>0){ save(); render(); stats(); }
 
-  const statusTextMap={'present':'출석','late':'무단지각','late_approved':'사유지각','absent':'무단결석','absent_approved':'사유결석','none':'미확인'};
+  const statusTextMap=Object.assign({none:'미확인'},ST_TEXT);
   const statusColorMap={
     'present':{row:'#f0fff4',cell:'#c8f7d8',font:'#1e7e34'},'late':{row:'#fff8f0',cell:'#ffe0b2',font:'#e65100'},
     'late_approved':{row:'#fffde7',cell:'#fff3cd',font:'#856404'},'absent':{row:'#fff5f5',cell:'#ffd6d6',font:'#c0392b'},
-    'absent_approved':{row:'#fff8ee',cell:'#f5d5a0',font:'#7a3800'},'none':{row:'#ffffff',cell:'#e0e0e0',font:'#555555'}
+    'absent_approved':{row:'#fff8ee',cell:'#f5d5a0',font:'#7a3800'},'none':{row:'#ffffff',cell:'#e0e0e0',font:'#555555'},
+    'late_sched':{row:'#eff6ff',cell:'#dbeafe',font:'#1d4ed8'},'absent_sched':{row:'#f5f3ff',cell:'#ede9fe',font:'#6d28d9'}
   };
   // ✅ 미확인 제외, 기타란 비고도 schedNote에 포함
   const records=students.map(s=>{
@@ -1009,6 +1059,8 @@ async function saveToSheet(){
     const color=statusColorMap[st]||statusColorMap['none'];
     let schedNote=si?si.dayText:'';
     if(extraResult) schedNote=(schedNote?schedNote+' / ':'')+'[기타] '+extraResult.label;
+    // 몇 분 지각인지 · 제출한 사유 — 시트의 사유기록 칸에 남긴다
+    const nt=getNote(s.id); if(nt) schedNote=(schedNote?schedNote+' / ':'')+nt;
     return {name:s.name,status:st,statusText:statusTextMap[st]||'미확인',time:getTime(s.id),schedNote,rowColor:color.row,cellColor:color.cell,fontColor:color.font};
   }).filter(r=>r.status!=='none');  // ✅ 미확인 제외
 
